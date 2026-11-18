@@ -1,0 +1,202 @@
+{
+  "simulator": "logisim-evolution-5.0.0-all.jar",
+  "sha256": {
+    "jar": "6b368e894742c04cc83aa9830f869bcab0190ede4df43ad6fecdb89b3a23a41c",
+    "production": "b047a43046df2c03238c45db98b626d16cf4d8d3c934657841ea8b70b96b3ba6",
+    "testBench": "54dbe11bcbd675683f7a5e181d3bbe6b4077b3c5f6dd03a06470d2156d1876a1"
+  },
+  "results": [
+    {
+      "name": "SUMA",
+      "pass": true,
+      "out": 8,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 3,
+      "cycles": 32
+    },
+    {
+      "name": "AND",
+      "pass": true,
+      "out": 5,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 5,
+      "cycles": 32
+    },
+    {
+      "name": "OR",
+      "pass": true,
+      "out": 15,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 5,
+      "cycles": 32
+    },
+    {
+      "name": "XOR",
+      "pass": true,
+      "out": 10,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 5,
+      "cycles": 32
+    },
+    {
+      "name": "JZ_TOMADO",
+      "pass": true,
+      "out": 0,
+      "flags": 1,
+      "pc": 6,
+      "fault": 0,
+      "m7": 0,
+      "cycles": 26
+    },
+    {
+      "name": "STA_LDA",
+      "pass": true,
+      "out": 42,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 42,
+      "cycles": 32
+    },
+    {
+      "name": "RESTA",
+      "pass": true,
+      "out": 254,
+      "flags": 4,
+      "pc": 5,
+      "fault": 0,
+      "m7": 5,
+      "cycles": 32
+    },
+    {
+      "name": "OVERFLOW",
+      "pass": true,
+      "out": 128,
+      "flags": 12,
+      "pc": 5,
+      "fault": 0,
+      "m7": 1,
+      "cycles": 32
+    },
+    {
+      "name": "CARRY",
+      "pass": true,
+      "out": 0,
+      "flags": 3,
+      "pc": 5,
+      "fault": 0,
+      "m7": 1,
+      "cycles": 32
+    },
+    {
+      "name": "SHL_SHR",
+      "pass": true,
+      "out": 1,
+      "flags": 0,
+      "pc": 5,
+      "fault": 0,
+      "m7": 0,
+      "cycles": 32
+    },
+    {
+      "name": "NOT",
+      "pass": true,
+      "out": 170,
+      "flags": 4,
+      "pc": 4,
+      "fault": 0,
+      "m7": 0,
+      "cycles": 26
+    },
+    {
+      "name": "JMP",
+      "pass": true,
+      "out": 42,
+      "flags": 0,
+      "pc": 7,
+      "fault": 0,
+      "m7": 42,
+      "cycles": 26
+    },
+    {
+      "name": "JZ_NO_TOMADO",
+      "pass": true,
+      "out": 255,
+      "flags": 4,
+      "pc": 5,
+      "fault": 0,
+      "m7": 0,
+      "cycles": 32
+    },
+    {
+      "name": "DIRECCION_INVALIDA",
+      "pass": true,
+      "out": 0,
+      "flags": 0,
+      "pc": 1,
+      "fault": 1,
+      "m7": 0,
+      "cycles": 6
+    },
+    {
+      "name": "OPCODE_INVALIDO",
+      "pass": true,
+      "out": 0,
+      "flags": 0,
+      "pc": 1,
+      "fault": 1,
+      "m7": 0,
+      "cycles": 6
+    },
+    {
+      "name": "AUTOMODIFICACION",
+      "pass": true,
+      "out": 0,
+      "flags": 0,
+      "pc": 0,
+      "fault": 0,
+      "m7": 192,
+      "cycles": 26
+    },
+    {
+      "name": "CELDA_D",
+      "pass": true,
+      "samples": 24
+    },
+    {
+      "name": "ALU_1800",
+      "pass": true,
+      "vectors": 1800
+    },
+    {
+      "name": "CONTROL_512",
+      "pass": true,
+      "combinations": 512
+    },
+    {
+      "name": "MEMORIA",
+      "pass": true,
+      "positions": 8,
+      "cycles": 32
+    },
+    {
+      "name": "RESET_HALT",
+      "pass": true,
+      "cycles": 78
+    },
+    {
+      "name": "SOLO_COMPUERTAS",
+      "pass": true,
+      "forbidden": [],
+      "gateDefinitions": 711
+    }
+  ]
+}
