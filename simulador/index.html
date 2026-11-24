@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Protoboard 8 bits · simulador de armado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<header id="barra">
+  <div class="marca">Protoboard <b>8 bits</b></div>
+  <div class="grupo">
+    <button data-acc="nuevo" title="Empezar un proyecto nuevo">Nuevo</button>
+    <button data-acc="abrir" title="Abrir un proyecto guardado (.json)">Abrir</button>
+    <button data-acc="guardar" title="Descargar el proyecto como archivo (Ctrl+S)">Guardar</button>
+  </div>
+  <div class="grupo">
+    <button data-acc="deshacer" title="Deshacer (Ctrl+Z)">↶</button>
+    <button data-acc="rehacer" title="Rehacer (Ctrl+Y)">↷</button>
+  </div>
+  <div class="grupo">
+    <button data-herr="seleccionar" class="activa" title="Mover piezas y usar interruptores (V)">✥ Mover</button>
+    <button data-herr="cable" title="Tirar cables (W)">〰 Cable</button>
+    <span id="colores"></span>
+    <button data-herr="punta" title="Punta lógica: mide una red (P)">⌁ Punta</button>
+    <button data-herr="borrar" title="Borrar piezas y cables (D)">✕ Borrar</button>
+  </div>
+  <div class="grupo">
+    <button data-acc="protoboard" title="Agregar otra protoboard">+ Protoboard</button>
+    <button data-acc="ajustar" title="Ver todo (F)">⤢ Ver todo</button>
+    <select id="vistaCables" title="Cómo se ven los cables">
+      <option value="opacos">Cables opacos</option>
+      <option value="translucidos">Cables translúcidos</option>
+      <option value="ocultos">Cables ocultos</option>
+    </select>
+    <label class="chk" title="Líneas naranjas punteadas entre los pines que faltan por unir"><input type="checkbox" id="verFaltantes" checked> Faltantes</label>
+    <label class="chk" title="Puntos de color en los pines de los chips al acercarte"><input type="checkbox" id="verValores" checked> Valores</label>
+  </div>
+  <div class="grupo sim">
+    <button data-acc="pausa" id="btnPausa" title="Detener o seguir el tiempo de la simulación">⏸ Pausa</button>
+    <select id="velocidad" title="Velocidad del tiempo simulado">
+      <option value="1">Tiempo real</option>
+      <option value="0.25">× 0.25</option>
+      <option value="0.05">× 0.05</option>
+      <option value="0.01">× 0.01 (rebotes)</option>
+    </select>
+    <button data-acc="reiniciar" title="Apagar y encender los chips: los registros quedan con valores al azar">⟲ Chips</button>
+    <span id="tiempo" class="mono"></span>
+  </div>
+</header>
+<aside id="paleta"></aside>
+<main id="escena">
+  <canvas id="lienzo"></canvas>
+  <div id="aviso"></div>
+  <div id="tip"></div>
+</main>
+<aside id="lateral">
+  <nav class="pestanas">
+    <button data-pest="guia" class="activa">Guía de armado</button>
+    <button data-pest="props">Pieza</button>
+    <button data-pest="diag">Problemas <span id="nDiag"></span></button>
+  </nav>
+  <section id="pest-guia" class="pest activa"></section>
+  <section id="pest-props" class="pest"></section>
+  <section id="pest-diag" class="pest"></section>
+</aside>
+<footer id="estado"><span id="estadoTexto"></span></footer>
+<input type="file" id="archivo" accept=".json,application/json" hidden>
+
+<script src="js/nucleo/base.js"></script>
+<script src="js/nucleo/geometria.js"></script>
+<script src="js/nucleo/chips.js"></script>
+<script src="js/nucleo/piezas.js"></script>
+<script src="js/nucleo/datos.js"></script>
+<script src="js/nucleo/diseno.js"></script>
+<script src="js/nucleo/motor.js"></script>
+<script src="js/nucleo/verificador.js"></script>
+<script src="js/nucleo/autoarmado.js"></script>
+<script src="js/nucleo/programas.js"></script>
+<script src="js/ui/dibujo.js"></script>
+<script src="js/ui/paneles.js"></script>
+<script src="js/ui/app.js"></script>
+<script>window.app = new SIM8.UI.App();</script>
+</body>
+</html>

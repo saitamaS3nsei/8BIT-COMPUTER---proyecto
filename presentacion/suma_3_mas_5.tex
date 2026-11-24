@@ -1,0 +1,877 @@
+% Presentación: cómo sumar 3 + 5 en la computadora de 8 bits, paso a paso.
+% Compilar con pdflatex, xelatex o lualatex (también en Overleaf). Dos pasadas para la numeración de páginas.
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{iftex}
+\ifXeTeX
+  \usepackage{fontspec}
+\else\ifLuaTeX
+  \usepackage{fontspec}
+\else
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi\fi
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{tikz}
+\usepackage{etoolbox}
+\usepackage{booktabs}
+\usepackage{array}
+\usetikzlibrary{positioning,arrows.meta,calc,decorations.pathreplacing,shapes.geometric,babel}
+
+% ---------------------------------------------------------------- Colores y estilo
+\definecolor{azul}{HTML}{2F6FD6}
+\definecolor{verde}{HTML}{2E9E4F}
+\definecolor{naranja}{HTML}{E67E22}
+\definecolor{rojodip}{HTML}{C0392B}
+\definecolor{amarillo}{HTML}{FFD60A}
+\definecolor{gris}{HTML}{8B93A3}
+\definecolor{oscuro}{HTML}{23272E}
+\definecolor{claro}{HTML}{F2EEE3}
+\setbeamercolor{frametitle}{fg=white,bg=oscuro}
+\setbeamercolor{title}{fg=oscuro}
+\setbeamercolor{structure}{fg=azul}
+\setbeamercolor{normal text}{fg=oscuro}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{footline}{\hfill\textcolor{gris}{\scriptsize\insertframenumber\ /\ \inserttotalframenumber}\hspace*{4mm}\vspace*{2mm}}
+\setbeamertemplate{frametitle}{\nointerlineskip\begin{beamercolorbox}[wd=\paperwidth,ht=9mm,dp=3mm,leftskip=5mm]{frametitle}\usebeamerfont{frametitle}\insertframetitle\end{beamercolorbox}}
+
+\newcommand{\orden}[1]{\textcolor{azul}{\textbf{#1}}}
+\newcommand{\dato}[1]{\textcolor{verde}{\textbf{#1}}}
+\newcommand{\ojo}[1]{\colorbox{amarillo!40}{\parbox{0.92\linewidth}{\small #1}}}
+
+% ---------------------------------------------------------------- Dibujos
+% DIP de datos. #1 = estado de los interruptores 1 a 8 (1 = arriba, encendido), de izquierda a derecha.
+\newcommand{\dipocho}[1]{%
+\begin{tikzpicture}[x=0.72cm,y=0.72cm,font=\scriptsize]
+  \fill[rojodip,rounded corners=3pt] (-0.55,-0.95) rectangle (7.55,0.95);
+  \node[rojodip!80!black,font=\tiny\bfseries,anchor=south west,inner sep=1pt] at (-0.55,0.95) {ON $\uparrow$};
+  \foreach \s [count=\i from 0] in {#1} {
+    \fill[rojodip!55!black] (\i-0.27,-0.62) rectangle (\i+0.27,0.62);
+    \ifnum\s=1 \fill[amarillo,draw=black,line width=0.3pt] (\i-0.23,0.04) rectangle (\i+0.23,0.58);
+    \else \fill[white] (\i-0.23,-0.58) rectangle (\i+0.23,-0.04); \fi
+    \pgfmathtruncatemacro{\n}{\i+1}\pgfmathtruncatemacro{\v}{2^\i}
+    \node at (\i,-1.3) {\textbf{\n}};
+    \node[gris,font=\tiny] at (\i,-1.72) {\v};
+  }
+\end{tikzpicture}}
+
+% DIP de dirección. #1 = interruptores 1 a 3 (el 4 no se usa).
+\newcommand{\dipcuatro}[1]{%
+\begin{tikzpicture}[x=0.72cm,y=0.72cm,font=\scriptsize]
+  \fill[rojodip,rounded corners=3pt] (-0.55,-0.95) rectangle (3.55,0.95);
+  \node[rojodip!80!black,font=\tiny\bfseries,anchor=south west,inner sep=1pt] at (-0.55,0.95) {ON $\uparrow$};
+  \foreach \s [count=\i from 0] in {#1,0} {
+    \fill[rojodip!55!black] (\i-0.27,-0.62) rectangle (\i+0.27,0.62);
+    \ifnum\s=1 \fill[amarillo,draw=black,line width=0.3pt] (\i-0.23,0.04) rectangle (\i+0.23,0.58);
+    \else \fill[white] (\i-0.23,-0.58) rectangle (\i+0.23,-0.04); \fi
+    \pgfmathtruncatemacro{\n}{\i+1}
+    \node at (\i,-1.3) {\textbf{\n}};
+  }
+  \node[gris,font=\tiny] at (0,-1.72) {1}; \node[gris,font=\tiny] at (1,-1.72) {2}; \node[gris,font=\tiny] at (2,-1.72) {4}; \node[gris,font=\tiny] at (3,-1.72) {sin uso};
+\end{tikzpicture}}
+
+% Ocho casillas con un número binario escrito (bit 7 a la izquierda).
+\newcommand{\celdas}[2][azul]{%
+\begin{tikzpicture}[x=0.62cm,y=0.62cm]
+  \foreach \b [count=\i from 0] in {#2} {
+    \pgfmathtruncatemacro{\v}{2^(7-\i)}
+    \ifnum\b=1 \fill[#1!25] (\i,0) rectangle +(0.9,0.9); \fi
+    \draw[#1,line width=0.6pt] (\i,0) rectangle +(0.9,0.9);
+    \node[font=\bfseries] at (\i+0.45,0.45) {\b};
+    \node[gris,font=\tiny] at (\i+0.45,-0.3) {\v};
+  }
+\end{tikzpicture}}
+
+% LEDs OUT7 a OUT0. #1 = estado de cada LED (1 = encendido).
+\newcommand{\ledsout}[1]{%
+\begin{tikzpicture}[x=0.95cm,y=0.95cm,font=\scriptsize]
+  \fill[claro,rounded corners=4pt] (-0.6,-1.25) rectangle (7.6,0.75);
+  \foreach \s [count=\i from 0] in {#1} {
+    \pgfmathtruncatemacro{\n}{7-\i}\pgfmathtruncatemacro{\v}{2^(7-\i)}
+    \ifnum\s=1
+      \fill[red!30] (\i,0.05) circle (0.48);
+      \fill[red!85!white,draw=red!50!black] (\i,0.05) circle (0.3);
+    \else
+      \fill[red!20!black,draw=black] (\i,0.05) circle (0.3);
+    \fi
+    \node at (\i,-0.6) {OUT\n};
+    \node[gris] at (\i,-0.95) {\v};
+  }
+\end{tikzpicture}}
+
+% Interruptor deslizante. #1 = 1 o 0. #2 = nombre.
+\newcommand{\deslizante}[2]{%
+\begin{tikzpicture}[x=0.8cm,y=0.8cm,font=\small]
+  \fill[oscuro,rounded corners=3pt] (0,0) rectangle (3,1);
+  \fill[black] (0.3,0.3) rectangle (2.7,0.7);
+  \ifnum#1=1 \fill[amarillo,draw=black,rounded corners=2pt] (0.3,0.15) rectangle (1.3,0.85);
+  \else \fill[white,draw=black,rounded corners=2pt] (1.7,0.15) rectangle (2.7,0.85); \fi
+  \node[gris] at (0.1,1.25) {1}; \node[gris] at (2.9,1.25) {0};
+  \node[font=\bfseries] at (1.5,-0.4) {#2 = #1};
+\end{tikzpicture}}
+
+% Diagrama de bloques. El argumento es la lista de conexiones resaltadas, por ejemplo {MB,BA}:
+% MB memoria-bus, BA bus-A, BB bus-B, AU A-ALU, BU B-ALU, UB ALU-bus, AB A-bus, BO bus-OUT, OL OUT-LEDs.
+\tikzset{ruta/.style={draw=naranja,line width=2.4pt,-{Latex[length=3mm]}},normal/.style={draw=gris!60,line width=0.8pt,-{Latex[length=2mm]}},
+  bloque/.style={draw=oscuro,fill=white,rounded corners=3pt,minimum height=0.85cm,minimum width=2.3cm,font=\small\bfseries,align=center}}
+\newcommand{\resaltar}[1]{\tikzset{c#1/.style=ruta}}
+\newcommand{\diagrama}[1]{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \tikzset{cMB/.style=normal,cBA/.style=normal,cBB/.style=normal,cAU/.style=normal,cBU/.style=normal,cUB/.style=normal,cAB/.style=normal,cBO/.style=normal,cOL/.style=normal}
+  \forcsvlist{\resaltar}{#1}
+  \node[bloque,minimum height=3.4cm,minimum width=2.3cm,fill=claro] (mem) at (0,0) {Memoria\\[2pt]\normalfont\scriptsize 8 cajones};
+  \draw[line width=4pt,oscuro!70] (2.6,-2.3) -- (2.6,2.3);
+  \node[font=\scriptsize\bfseries,above] at (2.6,2.3) {BUS};
+  \node[bloque] (A) at (5,1.6) {Registro A};
+  \node[bloque] (B) at (5,0) {Registro B};
+  \node[bloque] (O) at (5,-1.7) {Registro OUT};
+  \node[bloque,fill=azul!10,minimum width=1.8cm,minimum height=1.9cm] (U) at (8.2,0.8) {ALU\\[1pt]\normalfont\scriptsize suma};
+  \node[bloque,fill=red!8,minimum width=1.8cm] (L) at (8.2,-1.7) {LEDs OUT};
+  \draw[cMB] (mem.east) -- (2.5,0);
+  \draw[cBA] (2.7,1.45) -- (A.west |- 0,1.45);
+  \draw[cAB] (A.west |- 0,1.8) -- (2.7,1.8);
+  \draw[cBB] (2.7,0) -- (B.west);
+  \draw[cAU] (A.east) -- (U.west |- 0,1.3);
+  \draw[cBU] (B.east) -- (U.west |- 0,0.3);
+  \draw[cUB] (U.south) -- (8.2,-0.75) -- (2.7,-0.75);
+  \draw[cBO] (2.7,-1.7) -- (O.west);
+  \draw[cOL] (O.east) -- (L.west);
+\end{tikzpicture}}
+
+% Mapa de la memoria. #1 = cajón resaltado (o -1).
+\newcommand{\memoria}[1]{%
+\begin{tikzpicture}[x=1cm,y=0.62cm,font=\small]
+  \foreach \c/\cont/\que/\col in {0/1000 0110/LDA 6/azul,1/1001 0111/LDB 7/azul,2/0000 0000/ADD/azul,3/1101 0000/OUT/azul,4/1110 0000/HLT/azul,5/----/sin uso/gris,6/0000 0011/A = 3/verde,7/0000 0101/B = 5/verde} {
+    \pgfmathsetmacro{\y}{-\c}
+    \ifnum\c=#1 \fill[amarillo!45] (-0.1,\y-0.42) rectangle (5.6,\y+0.42); \fi
+    \draw[\col,line width=0.7pt,fill=\col!8,rounded corners=2pt] (0,\y-0.36) rectangle (0.8,\y+0.36);
+    \node[font=\bfseries] at (0.4,\y) {\c};
+    \node[font=\ttfamily\small,anchor=west] at (0.95,\y) {\cont};
+    \node[\col,font=\bfseries,anchor=west] at (3.6,\y) {\que};
+  }
+  \node[gris,font=\tiny,anchor=west] at (-0.1,0.85) {cajón};
+  \node[gris,font=\tiny,anchor=west] at (0.95,0.85) {contenido (8 bits)};
+  \node[gris,font=\tiny,anchor=west] at (3.6,0.85) {qué es};
+\end{tikzpicture}}
+
+% Una diapositiva por cajón. #1 cajón, #2 DIP dirección, #3 DIP datos, #4 binario, #5 qué es, #6 por qué esos interruptores, #7 color.
+\newcommand{\cajon}[7]{%
+\begin{frame}{Paso 2 · Cajón #1: #5}
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \centering\resizebox{\linewidth}{!}{\memoria{#1}}
+  \column{0.6\textwidth}
+    \small
+    \textbf{1. Dirección} en el DIP de dirección (Protoboard 7):\par\smallskip
+    \centering\scalebox{0.78}{\dipcuatro{#2}}\par\smallskip
+    \raggedright\textbf{2. Dato} \texttt{#4} en el DIP de datos (Protoboard 4):\par\smallskip
+    \centering\scalebox{0.78}{\dipocho{#3}}\par\smallskip
+    \raggedright\textcolor{gris}{#6}\par\smallskip
+    \textbf{3.} Pulsa y suelta \textbf{ESCRIBIR}.
+  \end{columns}
+\end{frame}}
+
+% ---------------------------------------------------------------- Dibujos de las demás operaciones
+% Programa de la suma con el cajón 2 como «la operación».
+\newcommand{\memoriaop}{%
+\begin{tikzpicture}[x=1cm,y=0.62cm,font=\small]
+  \foreach \c/\cont/\que/\col in {0/1000 0110/LDA 6/azul,1/1001 0111/LDB 7/azul,2/???? 0000/la operación/naranja,3/1101 0000/OUT/azul,4/1110 0000/HLT/azul,5/----/sin uso/gris,6/tu número/A/verde,7/tu número/B/verde} {
+    \pgfmathsetmacro{\y}{-\c}
+    \ifnum\c=2 \fill[naranja!25] (-0.1,\y-0.42) rectangle (5.9,\y+0.42); \fi
+    \draw[\col,line width=0.7pt,fill=\col!8,rounded corners=2pt] (0,\y-0.36) rectangle (0.8,\y+0.36);
+    \node[font=\bfseries] at (0.4,\y) {\c};
+    \node[font=\ttfamily\small,anchor=west] at (0.95,\y) {\cont};
+    \node[\col,font=\bfseries,anchor=west] at (3.6,\y) {\que};
+  }
+  \node[gris,font=\tiny,anchor=west] at (-0.1,0.85) {cajón};
+  \node[gris,font=\tiny,anchor=west] at (0.95,0.85) {contenido};
+  \node[gris,font=\tiny,anchor=west] at (3.6,0.85) {qué es};
+\end{tikzpicture}}
+
+% Columna izquierda de cada operación: código del cajón 2 y el DIP de datos dibujado.
+% #1 código, #2 estado de los interruptores 1 a 8, #3 interruptores a subir.
+\newcommand{\opdip}[3]{%
+  \centering
+  \textbf{Cajón 2} $=$ \texttt{#1}\par\smallskip
+  {\small Dirección: interruptor \textbf{2}}\par
+  {\small Datos: \textbf{#3}}\par\smallskip
+  \scalebox{0.6}{\dipocho{#2}}}
+
+% Fila de una tabla de bits: nombre, bits y valor decimal.
+\newcommand{\filabits}[4][verde]{\raisebox{0.24cm}{#2} & \celdas[#1]{#3} & \raisebox{0.24cm}{$=$ #4}}
+
+% Corrimiento de bits. #1 bits de A, #2 bits del resultado, #3 = 1 izquierda o 0 derecha, #4 nombre.
+\newcommand{\corrimiento}[4]{%
+\begin{tikzpicture}[x=0.62cm,y=0.62cm]
+  \foreach \b [count=\i from 0] in {#1} {
+    \ifnum\b=1 \fill[verde!25] (\i,2.2) rectangle +(0.9,0.9); \fi
+    \draw[verde,line width=0.6pt] (\i,2.2) rectangle +(0.9,0.9);
+    \node[font=\bfseries] at (\i+0.45,2.65) {\b};
+  }
+  \foreach \b [count=\i from 0] in {#2} {
+    \pgfmathtruncatemacro{\v}{2^(7-\i)}
+    \ifnum\b=1 \fill[red!25] (\i,0) rectangle +(0.9,0.9); \fi
+    \draw[red,line width=0.6pt] (\i,0) rectangle +(0.9,0.9);
+    \node[font=\bfseries] at (\i+0.45,0.45) {\b};
+    \node[gris,font=\tiny] at (\i+0.45,-0.3) {\v};
+  }
+  \node[anchor=east] at (-0.2,2.65) {A};
+  \node[anchor=east,font=\bfseries] at (-0.2,0.45) {#4};
+  \ifnum#3=1
+    \foreach \i in {1,...,7} \draw[-{Latex[length=1.6mm]},naranja,line width=0.8pt] (\i+0.45,2.15) -- (\i-0.55,0.95);
+    \node[naranja,font=\scriptsize,align=center] at (8.5,0.45) {entra\\un 0};
+    \draw[-{Latex[length=1.6mm]},naranja,line width=0.8pt] (8.05,0.45) -- (7.95,0.45);
+    \node[gris,font=\scriptsize,align=center] at (-0.9,3.75) {se pierde};
+    \draw[gris,-{Latex[length=1.4mm]}] (0.45,3.15) -- (0.1,3.6);
+  \else
+    \foreach \i in {0,...,6} \draw[-{Latex[length=1.6mm]},naranja,line width=0.8pt] (\i+0.45,2.15) -- (\i+1.45,0.95);
+    \node[naranja,font=\scriptsize,align=center] at (-1.1,1.55) {entra\\un 0};
+    \draw[-{Latex[length=1.6mm]},naranja,line width=0.8pt] (-0.6,1.0) -- (0.3,0.9);
+    \node[gris,font=\scriptsize,align=center] at (8.6,3.75) {se pierde};
+    \draw[gris,-{Latex[length=1.4mm]}] (7.45,3.15) -- (7.9,3.6);
+  \fi
+\end{tikzpicture}}
+
+% ================================================================ Documento
+\title{Cómo sumar 3 + 5 en la computadora de 8 bits}
+\subtitle{Paso a paso: de los interruptores a los LEDs · y las demás operaciones}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+  \centering
+  \begin{tikzpicture}[font=\large\bfseries]
+    \node[draw=verde,line width=1pt,rounded corners,minimum width=1.4cm,minimum height=1cm] (a) {3};
+    \node[right=0.3cm of a] (m) {+};
+    \node[draw=verde,line width=1pt,rounded corners,minimum width=1.4cm,minimum height=1cm,right=0.3cm of m] (b) {5};
+    \node[right=0.3cm of b] (i) {=};
+    \node[draw=red!70!black,fill=red!10,line width=1pt,rounded corners,minimum width=1.4cm,minimum height=1cm,right=0.3cm of i] {8};
+  \end{tikzpicture}
+\end{frame}
+
+% ---------------------------------------------------------------- La idea
+\begin{frame}{Qué vamos a hacer}
+  La computadora no sabe hacer «3 + 5» por sí sola. Hay que darle \dato{los números} y \orden{una lista de órdenes} (el programa), y guardar todo en su memoria.
+  \vfill
+  \centering
+  \begin{tikzpicture}[caja/.style={draw=oscuro,fill=white,rounded corners=4pt,minimum width=2.7cm,minimum height=1.5cm,align=center,font=\small},flecha/.style={-{Latex[length=3mm]},line width=1.2pt,naranja}]
+    \node[caja] (p1) {\textbf{1. Escribir}\\en binario};
+    \node[caja,right=0.8cm of p1] (p2) {\textbf{2. Guardar}\\en la memoria\\\scriptsize con los interruptores};
+    \node[caja,right=0.8cm of p2] (p3) {\textbf{3. Ejecutar}\\\scriptsize con el reloj};
+    \node[caja,right=0.8cm of p3,fill=red!8] (p4) {\textbf{4. Leer}\\los LEDs OUT};
+    \draw[flecha] (p1) -- (p2); \draw[flecha] (p2) -- (p3); \draw[flecha] (p3) -- (p4);
+  \end{tikzpicture}
+  \vfill
+\end{frame}
+
+\begin{frame}{La memoria: 8 cajones}
+  \begin{columns}[c]
+  \column{0.48\textwidth}
+    \centering
+    \begin{tikzpicture}[x=0.5cm,y=0.5cm]
+      \foreach \c in {0,...,7} {
+        \pgfmathsetmacro{\y}{-1.2*\c}
+        \node[font=\bfseries] at (-1,\y+0.45) {\c};
+        \foreach \b in {0,...,7} \draw[azul!70,fill=azul!6] (\b,\y) rectangle +(0.9,0.9);
+      }
+      \node[gris,font=\scriptsize] at (-1,1.6) {cajón};
+      \node[gris,font=\scriptsize] at (3.95,1.6) {8 bits (ceros o unos)};
+    \end{tikzpicture}
+  \column{0.5\textwidth}
+    \begin{itemize}
+      \item La memoria tiene \textbf{8 cajones}, numerados del 0 al 7.
+      \item A ese número se le llama \textbf{dirección}.
+      \item Cada cajón guarda \textbf{8 bits}: un número de 0 a 255, o una orden.
+      \item En los mismos cajones van las órdenes y los números.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Qué guardamos en cada cajón}
+  \begin{columns}[c]
+  \column{0.55\textwidth}
+    \centering\scalebox{1.15}{\memoria{-1}}
+  \column{0.43\textwidth}
+    \small
+    \begin{itemize}
+      \item Cajones 0 a 4: \orden{el programa}. La computadora los lee en orden, empezando por el 0.
+      \item Cajones 6 y 7: \dato{los números}. Nunca se ejecutan, solo se leen.
+      \item El cajón 5 no se usa.
+    \end{itemize}
+    \medskip
+    \begin{tabular}{@{}ll@{}}
+      \orden{LDA 6} & toma el cajón 6 y ponlo en A\\
+      \orden{LDB 7} & toma el cajón 7 y ponlo en B\\
+      \orden{ADD} & suma A + B y guárdalo en A\\
+      \orden{OUT} & muestra A en los LEDs\\
+      \orden{HLT} & detente\\
+    \end{tabular}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Las piezas que intervienen}
+  \centering\scalebox{0.88}{\diagrama{}}
+  \vfill
+  \small
+  \begin{columns}[T]
+  \column{0.48\textwidth}
+    \begin{itemize}
+      \item \textbf{Bus}: 8 cables por donde pasan los datos de una pieza a otra.
+      \item \textbf{Registros A y B}: donde se ponen los dos números.
+    \end{itemize}
+  \column{0.48\textwidth}
+    \begin{itemize}
+      \item \textbf{ALU}: hace la suma con lo que hay en A y B.
+      \item \textbf{OUT}: guarda el resultado que ves en los LEDs.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------- Binario
+\begin{frame}{Cómo se escribe una orden}
+  Cada cajón tiene 8 bits. En una orden se reparten así:
+  \bigskip
+  \centering
+  \begin{tikzpicture}[x=0.9cm,y=0.9cm]
+    \foreach \b [count=\i from 0] in {1,0,0,0,0,1,1,0} {
+      \ifnum\i<4 \def\c{azul}\else\def\c{naranja}\fi
+      \draw[\c,line width=1pt,fill=\c!10] (\i,0) rectangle +(0.9,0.9);
+      \node[font=\large\bfseries] at (\i+0.45,0.45) {\b};
+    }
+    \draw[decorate,decoration={brace,amplitude=6pt,mirror},line width=0.8pt] (0,-0.15) -- (3.9,-0.15) node[midway,below=8pt,align=center,azul] {\textbf{qué orden es}\\\small 1000 = LDA};
+    \draw[decorate,decoration={brace,amplitude=6pt,mirror},line width=0.8pt] (4,-0.15) -- (7.9,-0.15) node[midway,below=8pt,align=center,naranja] {\textbf{a qué cajón}\\\small 0110 = cajón 6};
+    \node[font=\Large\bfseries] at (10.3,0.45) {= LDA 6};
+  \end{tikzpicture}
+  \vfill
+  \raggedright
+  \begin{columns}[T]
+  \column{0.45\textwidth}
+    \begin{tabular}{@{}lll@{}}
+      \toprule Orden & Código & Usa cajón\\\midrule
+      \orden{LDA} & \texttt{1000} & sí\\
+      \orden{LDB} & \texttt{1001} & sí\\
+      \orden{ADD} & \texttt{0000} & no\\
+      \orden{OUT} & \texttt{1101} & no\\
+      \orden{HLT} & \texttt{1110} & no\\\bottomrule
+    \end{tabular}
+  \column{0.5\textwidth}
+    \small Las órdenes que no usan cajón llevan \texttt{0000} en los 4 bits de la derecha.\par\medskip
+    Por ejemplo, ADD es \texttt{0000 0000} y OUT es \texttt{1101 0000}.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Repaso de binario: 3 y 5}
+  Cada posición vale el doble que la de su derecha. Un número es la suma de las posiciones que tienen un 1.
+  \vfill
+  \centering
+  \begin{tabular}{rl}
+    \raisebox{0.25cm}{\dato{3} $=$ 2 + 1} & \celdas[verde]{0,0,0,0,0,0,1,1}\\[4mm]
+    \raisebox{0.25cm}{\dato{5} $=$ 4 + 1} & \celdas[verde]{0,0,0,0,0,1,0,1}\\[4mm]
+    \raisebox{0.25cm}{\textcolor{red!70!black}{\textbf{8}} $=$ 8} & \celdas[red]{0,0,0,0,1,0,0,0}\\
+  \end{tabular}
+  \vfill
+  \raggedright\small El número escrito tiene el bit que vale 128 a la \textbf{izquierda} y el que vale 1 a la \textbf{derecha}.
+\end{frame}
+
+\begin{frame}{El DIP de datos (Protoboard 4)}
+  Cada interruptor \textbf{vale un número}. Para poner un número, sube los interruptores cuyos valores \textbf{sumen} ese número.
+  \vfill
+  \centering\dipocho{1,1,0,0,0,0,0,0}
+  \vfill
+  \raggedright
+  Debajo de cada interruptor está su número y, en gris, lo que vale.\par\smallskip
+  Ejemplo: \dato{3} $=$ 1 + 2, así que se suben los interruptores \textbf{1} y \textbf{2} (en amarillo). Interruptor arriba $=$ 1; abajo $=$ 0.
+\end{frame}
+
+\begin{frame}{Ojo: el DIP se lee al revés que el número escrito}
+  \centering
+  \begin{tikzpicture}[x=0.72cm,y=0.72cm]
+    \node[anchor=west,font=\small] at (-4.6,3.0) {Número escrito};
+    \foreach \b [count=\i from 0] in {0,0,0,0,0,0,1,1} {
+      \pgfmathtruncatemacro{\v}{2^(7-\i)}
+      \ifnum\b=1 \fill[verde!25] (\i-0.4,2.6) rectangle +(0.8,0.8); \fi
+      \draw[verde] (\i-0.4,2.6) rectangle +(0.8,0.8);
+      \node[font=\bfseries] at (\i,3.0) {\b};
+      \node[gris,font=\tiny] at (\i,3.65) {\v};
+      \coordinate (e\i) at (\i,2.6);
+    }
+    \node[anchor=west,font=\small] at (-4.6,0) {DIP de datos};
+    \fill[rojodip,rounded corners=3pt] (-0.55,-0.95) rectangle (7.55,0.95);
+    \node[rojodip!80!black,font=\tiny\bfseries,anchor=south west,inner sep=1pt] at (-0.55,0.95) {ON $\uparrow$};
+    \foreach \s [count=\i from 0] in {1,1,0,0,0,0,0,0} {
+      \fill[rojodip!55!black] (\i-0.27,-0.62) rectangle (\i+0.27,0.62);
+      \ifnum\s=1 \fill[amarillo,draw=black,line width=0.3pt] (\i-0.23,0.04) rectangle (\i+0.23,0.58);
+      \else \fill[white] (\i-0.23,-0.58) rectangle (\i+0.23,-0.04); \fi
+      \pgfmathtruncatemacro{\n}{\i+1}\pgfmathtruncatemacro{\v}{2^\i}
+      \node[font=\scriptsize\bfseries] at (\i,-1.3) {\n};
+      \node[gris,font=\tiny] at (\i,-1.7) {\v};
+      \coordinate (d\i) at (\i,0.95);
+    }
+    \draw[-{Latex},naranja,line width=1pt] (e7) to[out=-90,in=90] (d0);
+    \draw[-{Latex},naranja,line width=1pt] (e6) to[out=-90,in=90] (d1);
+    \draw[-{Latex},gris!60] (e0) to[out=-90,in=90] (d7);
+  \end{tikzpicture}
+  \vfill
+  \raggedright\small
+  El 1 de la \textbf{derecha} del número escrito (vale 1) va en el interruptor \textbf{1}, que está a la \textbf{izquierda} del DIP.
+  Si piensas en «cuánto vale cada interruptor», no hace falta voltear nada.
+\end{frame}
+
+\begin{frame}{El DIP de dirección (Protoboard 7)}
+  \begin{columns}[c]
+  \column{0.45\textwidth}
+    \centering\dipcuatro{0,1,1}\par\medskip
+    \small Cajón 6 $=$ 2 + 4: se suben el \textbf{2} y el \textbf{3}.
+  \column{0.52\textwidth}
+    Funciona igual que el de datos, con 3 interruptores: el 1 vale 1, el 2 vale 2 y el 3 vale 4.\par
+    \medskip
+    {\centering
+    \begin{tabular}{cl}
+      \toprule Cajón & Subir\\\midrule
+      0 & ninguno\\ 1 & 1\\ 2 & 2\\ 3 & 1 y 2\\ 4 & 3\\ 5 & 1 y 3\\ 6 & 2 y 3\\ 7 & 1, 2 y 3\\\bottomrule
+    \end{tabular}\par}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Dónde está cada control}
+  \begin{columns}[c]
+  \column{0.6\textwidth}
+    \centering
+    \begin{tikzpicture}[x=1cm,y=0.95cm,
+        pb/.style={draw=gris,fill=claro,rounded corners=2pt,text width=3.1cm,minimum height=0.9cm,font=\tiny,align=center,inner sep=1.5pt},
+        con/.style={pb,draw=naranja,line width=1pt,fill=naranja!12}]
+      \foreach \n/\t/\c [count=\k from 0] in {
+          1/{Reloj y reset}/{AUTO · PASO · RESET},
+          2/{Reloj, PC y registros}/{PROG},
+          3/{Registros y bus}/{},
+          4/{Registros y bus}/{DIP de datos},
+          5/{Registros y memoria}/{LEDs OUT},
+          6/{Memoria}/{},
+          7/{Memoria y ALU}/{DIP de dirección · ESCRIBIR},
+          8/{ALU}/{}, 9/{ALU}/{}, 10/{ALU}/{},
+          11/{ALU y control}/{LEDs V N C Z},
+          12/{Unidad de control}/{}} {
+        \pgfmathsetmacro{\x}{mod(\k,2)*3.55}\pgfmathsetmacro{\y}{-floor(\k/2)*1.05}
+        \ifx\c\empty
+          \node[pb] at (\x,\y) {\textbf{Protoboard \n}\\\t};
+        \else
+          \node[con] at (\x,\y) {\textbf{Protoboard \n}\\\t\\\textcolor{naranja!80!black}{\textbf{\c}}};
+        \fi
+      }
+      \node[draw=oscuro,fill=oscuro!80,text=white,font=\tiny\bfseries,minimum width=1cm,minimum height=0.7cm] at (-2.55,0) {Fuente};
+    \end{tikzpicture}
+  \column{0.38\textwidth}
+    \small
+    \begin{itemize}
+      \item \textbf{Fuente}: botón de encendido.
+      \item \textbf{PROG}: 1 = programar, 0 = ejecutar.
+      \item \textbf{DIP de dirección} y \textbf{DIP de datos}: qué cajón y qué valor.
+      \item \textbf{ESCRIBIR}: guarda el dato.
+      \item \textbf{AUTO}: 1 = reloj solo, 0 = con PASO.
+      \item \textbf{PASO}: un pulso de reloj.
+      \item \textbf{RESET}: empezar de nuevo.
+    \end{itemize}
+    \scriptsize\textcolor{gris}{En naranja: lo que vas a mover o mirar. Es el armado del simulador; en el tuyo puede cambiar.}
+  \end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------- Programar
+\begin{frame}{Paso 1 · Encender y entrar al modo programación}
+  \begin{columns}[c]
+  \column{0.45\textwidth}
+    \centering\deslizante{1}{PROG}
+  \column{0.53\textwidth}
+    \begin{enumerate}
+      \item Enciende la fuente (5 V).
+      \item Pon el interruptor \textbf{PROG en 1} (Protoboard 2, a la izquierda).
+    \end{enumerate}
+    \medskip
+    Con PROG en 1 la computadora se queda quieta y acepta datos para la memoria.
+  \end{columns}
+  \vfill
+  \ojo{Al encender, los registros y la memoria tienen valores al azar, como los chips reales. Por eso se programa después de encender.}
+\end{frame}
+
+\begin{frame}{Paso 2 · Cómo se escribe un cajón}
+  \centering
+  \begin{tikzpicture}[caja/.style={draw=oscuro,fill=white,rounded corners=4pt,minimum width=3.3cm,minimum height=1.9cm,align=center,font=\small},flecha/.style={-{Latex[length=3mm]},line width=1.2pt,naranja}]
+    \node[caja] (a) {\textbf{1. Dirección}\\DIP de dirección\\\scriptsize qué cajón};
+    \node[caja,right=0.8cm of a] (b) {\textbf{2. Dato}\\DIP de datos\\\scriptsize qué guardar};
+    \node[caja,right=0.8cm of b,fill=amarillo!30] (c) {\textbf{3. ESCRIBIR}\\pulsar y soltar\\\scriptsize se guarda al soltar};
+    \draw[flecha] (a) -- (b); \draw[flecha] (b) -- (c);
+  \end{tikzpicture}
+  \vfill
+  \raggedright
+  Se repite para cada cajón: 0, 1, 2, 3, 4, 6 y 7. En el DIP de datos, baja siempre los interruptores que no se usan.
+\end{frame}
+
+\cajon{0}{0,0,0}{0,1,1,0,0,0,0,1}{1000 0110}{LDA 6}{Dirección 0: ningún interruptor. Dato 128 + 4 + 2: interruptores 8, 3 y 2.}{azul}
+\cajon{1}{1,0,0}{1,1,1,0,1,0,0,1}{1001 0111}{LDB 7}{Dirección 1: interruptor 1. Dato 128 + 16 + 4 + 2 + 1: interruptores 8, 5, 3, 2 y 1.}{azul}
+\cajon{2}{0,1,0}{0,0,0,0,0,0,0,0}{0000 0000}{ADD}{Dirección 2: interruptor 2. Dato 0: todos abajo.}{azul}
+\cajon{3}{1,1,0}{0,0,0,0,1,0,1,1}{1101 0000}{OUT}{Dirección 3 $=$ 1 + 2: interruptores 1 y 2. Dato 128 + 64 + 16: interruptores 8, 7 y 5.}{azul}
+\cajon{4}{0,0,1}{0,0,0,0,0,1,1,1}{1110 0000}{HLT}{Dirección 4: interruptor 3. Dato 128 + 64 + 32: interruptores 8, 7 y 6.}{azul}
+\cajon{6}{0,1,1}{1,1,0,0,0,0,0,0}{0000 0011}{el número 3}{Dirección 6 $=$ 2 + 4: interruptores 2 y 3. Dato 3 $=$ 1 + 2: interruptores 1 y 2.}{verde}
+\cajon{7}{1,1,1}{1,0,1,0,0,0,0,0}{0000 0101}{el número 5}{Dirección 7 $=$ 1 + 2 + 4: interruptores 1, 2 y 3. Dato 5 $=$ 1 + 4: interruptores 1 y 3.}{verde}
+
+% ---------------------------------------------------------------- Ejecutar
+\begin{frame}{Paso 3 · Salir del modo programación}
+  \begin{columns}[c]
+  \column{0.45\textwidth}
+    \centering\deslizante{0}{PROG}\par\bigskip\deslizante{0}{AUTO}
+  \column{0.53\textwidth}
+    \begin{enumerate}
+      \item Pon \textbf{PROG en 0}. La computadora queda lista para empezar en el cajón 0.
+      \item Pon \textbf{AUTO en 0} (Protoboard 1, abajo a la derecha). Así avanza solo cuando pulsas \textbf{PASO}.
+    \end{enumerate}
+    \medskip
+    \small Con AUTO en 1 corre sola, a la velocidad del potenciómetro.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Cada orden se hace en 4 fases}
+  \begin{columns}[c]
+  \column{0.5\textwidth}
+    \centering
+    \begin{tikzpicture}[fase/.style={circle,draw=azul,fill=azul!8,line width=1pt,minimum size=1.55cm,align=center,font=\scriptsize}]
+      \node[fase] (t0) at (90:2) {\textbf{T0}\\preparar};
+      \node[fase] (t1) at (0:2) {\textbf{T1}\\leer\\la orden};
+      \node[fase] (t2) at (-90:2) {\textbf{T2}\\ver\\el cajón};
+      \node[fase,fill=naranja!20,draw=naranja] (t3) at (180:2) {\textbf{T3}\\hacer\\la orden};
+      \foreach \a/\b in {t0/t1,t1/t2,t2/t3,t3/t0} \draw[-{Latex[length=3mm]},line width=1pt,gris] (\a) to[bend left=25] (\b);
+      \node[font=\scriptsize,align=center,gris] at (0,0) {1 pulsación\\de PASO\\$=$ 1 fase};
+    \end{tikzpicture}
+  \column{0.48\textwidth}
+    \small
+    \begin{description}
+      \item[T0] Elige el cajón que toca leer.
+      \item[T1] Lee la orden de ese cajón (se ve en los LEDs del bus) y avanza al siguiente cajón.
+      \item[T2] Mira a qué cajón se refiere la orden.
+      \item[T3] Hace la orden.
+    \end{description}
+    \medskip
+    Los LEDs PH0 y PH1 muestran la fase.
+  \end{columns}
+\end{frame}
+
+\begin{frame}{19 pulsaciones de PASO}
+  \centering
+  \begin{tikzpicture}[x=0.62cm,y=0.62cm,font=\scriptsize]
+    \foreach \i in {1,...,19} {
+      \pgfmathtruncatemacro{\g}{floor((\i-1)/4)}
+      \ifcase\g \def\c{azul}\or\def\c{azul}\or\def\c{naranja}\or\def\c{red!70!black}\else\def\c{gris}\fi
+      \fill[\c!15,draw=\c] (\i-1,0) rectangle +(0.85,0.85);
+      \node at (\i-0.575,0.425) {\i};
+    }
+    \foreach \a/\b/\t/\c in {0/3.85/LDA 6/azul,4/7.85/LDB 7/azul,8/11.85/ADD/naranja,12/15.85/OUT/red!70!black,16/18.85/HLT/gris}
+      \draw[decorate,decoration={brace,amplitude=4pt,mirror},\c,line width=0.8pt] (\a,-0.15) -- (\b,-0.15) node[midway,below=5pt,font=\scriptsize\bfseries] {\t};
+  \end{tikzpicture}
+  \vfill
+  \raggedright
+  \begin{tabular}{@{}lll@{}}
+    \toprule Pulsaciones & Orden & Qué queda al terminar\\\midrule
+    1 a 4 & \orden{LDA 6} & A $=$ 0000 0011 (3)\\
+    5 a 8 & \orden{LDB 7} & B $=$ 0000 0101 (5)\\
+    9 a 12 & \orden{ADD} & A $=$ 0000 1000 (8)\\
+    13 a 16 & \orden{OUT} & OUT $=$ 0000 1000 (8)\\
+    17 a 19 & \orden{HLT} & se detiene; más pulsaciones no hacen nada\\\bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Pulsaciones 1 a 4 · LDA 6}
+  \centering\diagrama{MB,BA}
+  \vfill\raggedright
+  La computadora lee el cajón 0 (\orden{LDA 6}). Después saca el \dato{3} del cajón 6, lo pasa por el bus y lo guarda en el \textbf{registro A}.\par\smallskip
+  \small En la fase T3 los LEDs del bus muestran \texttt{0000 0011}.
+\end{frame}
+
+\begin{frame}{Pulsaciones 5 a 8 · LDB 7}
+  \centering\diagrama{MB,BB}
+  \vfill\raggedright
+  Lee el cajón 1 (\orden{LDB 7}). Saca el \dato{5} del cajón 7 y lo guarda en el \textbf{registro B}.\par\smallskip
+  \small En la fase T3 los LEDs del bus muestran \texttt{0000 0101}. El registro B no tiene LEDs en la protoboard.
+\end{frame}
+
+\begin{frame}{Pulsaciones 9 a 12 · ADD}
+  \centering\diagrama{AU,BU,UB,BA}
+  \vfill\raggedright
+  Lee el cajón 2 (\orden{ADD}). La ALU suma A + B: \dato{3} + \dato{5} $=$ \textbf{8}. El resultado pasa por el bus y se guarda en \textbf{A}, que ahora vale 8.\par\smallskip
+  \small En la fase T3 los LEDs del bus muestran \texttt{0000 1000}. Las banderas V N C Z quedan en 0.
+\end{frame}
+
+\begin{frame}{Pulsaciones 13 a 16 · OUT}
+  \centering\diagrama{AB,BO,OL}
+  \vfill\raggedright
+  Lee el cajón 3 (\orden{OUT}). Copia lo que hay en A al \textbf{registro OUT}, y se encienden los LEDs del resultado.\par\smallskip
+  \small En la fase T3 los LEDs del bus muestran \texttt{0000 1000}.
+\end{frame}
+
+\begin{frame}{Pulsaciones 17 a 19 · HLT}
+  \begin{columns}[c]
+  \column{0.4\textwidth}
+    \centering
+    \begin{tikzpicture}
+      \node[regular polygon,regular polygon sides=8,fill=red!75!black,minimum size=2.6cm,text=white,font=\Large\bfseries] {ALTO};
+    \end{tikzpicture}
+  \column{0.58\textwidth}
+    Lee el cajón 4 (\orden{HLT}) y \textbf{detiene el reloj}.
+    \medskip
+    \begin{itemize}
+      \item Se queda en la fase T3, con el contador de programa en \texttt{101} (5).
+      \item Más pulsaciones de PASO ya no hacen nada.
+      \item Para volver a correr el programa, pulsa \textbf{RESET}. La memoria no se borra.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ---------------------------------------------------------------- Resultado
+\begin{frame}{El resultado}
+  Mira los \textbf{LEDs OUT} (Protoboard 5, mitad de abajo a la izquierda). Aquí el de la izquierda vale 128 y el de la derecha vale 1, igual que el número escrito.
+  \vfill
+  \centering\ledsout{0,0,0,0,1,0,0,0}
+  \vfill
+  \raggedright
+  Solo se enciende \textbf{OUT3}, que vale 8: \quad\dato{3} + \dato{5} $=$ \textbf{8} $=$ \texttt{0000 1000}.\par\smallskip
+  \small Las banderas V N C Z (Protoboard 11) quedan apagadas: no hubo acarreo, el resultado no es cero ni negativo.
+\end{frame}
+
+\begin{frame}{Si algo no sale}
+  \small
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.4\textwidth}>{\raggedright\arraybackslash}p{0.54\textwidth}@{}}
+    \toprule Lo que ves & Qué revisar\\\midrule
+    OUT da otro número & Vuelve a escribir los cajones 6 y 7. Cuenta los interruptores con sus valores: 1, 2, 4, 8, etc.\\[2pt]
+    No pasa nada al pulsar PASO & PROG debe estar en 0 y AUTO en 0. Si ya terminó (HLT), pulsa RESET\\[2pt]
+    En T1 el bus no muestra la orden esperada & Ese cajón quedó mal escrito: repítelo con PROG en 1\\[2pt]
+    El resultado está corrido o al revés & Revisa el orden: en el DIP, el interruptor 1 es el que vale 1\\[2pt]
+    Las banderas encendidas & Normal si la suma pasa de 255 (C) o de 127 con signo (V)\\\bottomrule
+  \end{tabular}
+\end{frame}
+
+\begin{frame}{Para hacer otra suma}
+  El programa (cajones 0 a 4) no cambia. Solo reescribe los \dato{cajones 6 y 7} con PROG en 1, y luego vuelve a poner PROG en 0.
+  \medskip
+  \begin{columns}[c]
+  \column{0.5\textwidth}
+    \centering
+    \textbf{Ejemplo: 12 + 9}\par\smallskip
+    {\small Cajón 6 $=$ 12 $=$ 8 + 4}\par
+    \scalebox{0.7}{\dipocho{0,0,1,1,0,0,0,0}}\par\smallskip
+    {\small Cajón 7 $=$ 9 $=$ 8 + 1}\par
+    \scalebox{0.7}{\dipocho{1,0,0,1,0,0,0,0}}
+  \column{0.45\textwidth}
+    \centering
+    Resultado esperado:\par\medskip
+    \celdas[red]{0,0,0,1,0,1,0,1}\par\medskip
+    \texttt{0001 0101} $=$ 16 + 4 + 1 $=$ \textbf{21}
+    \vfill
+    \raggedright\scriptsize Si la suma pasa de 255, el resultado se queda con los 8 bits de abajo y se enciende la bandera C (acarreo).
+  \end{columns}
+\end{frame}
+
+\begin{frame}{En el simulador}
+  \begin{itemize}
+    \item Abre \texttt{simulador/computadora-armada.html}: trae la computadora completa.
+    \item Con la herramienta \textbf{Mover}: un clic en cada interruptor del DIP lo sube o lo baja. Para pulsar ESCRIBIR o PASO, mantén presionado el botón del ratón sobre ellos.
+    \item \textbf{Atajo}: en la guía, paso 8, pulsa «Cargar» en el Programa 1 (5 + 3). Eso escribe todo el código. Después solo cambias a mano los cajones 6 y 7.
+    \item La tabla «Estado de la CPU» muestra A, B, OUT, el PC, la fase y la memoria.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Resumen}
+  \begin{enumerate}
+    \item Enciende la fuente y pon \textbf{PROG en 1}.
+    \item Escribe los cajones 0, 1, 2, 3, 4, 6 y 7: dirección, dato y \textbf{ESCRIBIR}.
+    \item Pon \textbf{PROG en 0} y \textbf{AUTO en 0}.
+    \item Pulsa \textbf{PASO} 19 veces (o pon AUTO en 1).
+    \item Lee los \textbf{LEDs OUT}: \texttt{0000 1000} $=$ 8.
+  \end{enumerate}
+  \vfill
+  \centering
+  \begin{tikzpicture}[font=\large\bfseries]
+    \node[draw=verde,line width=1pt,rounded corners,minimum width=1.2cm,minimum height=0.9cm] (a) {3};
+    \node[right=0.25cm of a] (m) {+};
+    \node[draw=verde,line width=1pt,rounded corners,minimum width=1.2cm,minimum height=0.9cm,right=0.25cm of m] (b) {5};
+    \node[right=0.25cm of b] (i) {=};
+    \node[draw=red!70!black,fill=red!10,line width=1pt,rounded corners,minimum width=1.2cm,minimum height=0.9cm,right=0.25cm of i] {8};
+  \end{tikzpicture}
+\end{frame}
+
+% ================================================================ Las demás operaciones
+\begin{frame}{Las demás operaciones: solo cambia el cajón 2}
+  \begin{columns}[c]
+  \column{0.46\textwidth}
+    \centering\scalebox{1.05}{\memoriaop}
+  \column{0.52\textwidth}
+    El programa es \textbf{el mismo de la suma}. Solo cambia la orden del \textbf{cajón 2}.
+    \medskip
+    \begin{enumerate}
+      \item Pon \textbf{PROG en 1}.
+      \item Reescribe el \textbf{cajón 2} con el código de la operación.
+      \item Si quieres otros números, reescribe los cajones 6 y 7.
+      \item Pon \textbf{PROG en 0} y \textbf{AUTO en 1}.
+      \item Lee los \textbf{LEDs OUT}.
+    \end{enumerate}
+    \medskip
+    \small\textcolor{gris}{Si apagaste la fuente, la memoria se borró: escribe los 7 cajones como en la suma, con el cajón 2 de la operación.}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Código del cajón 2 para cada operación}
+  \centering
+  \begin{tabular}{@{}llccc@{}}
+    \toprule Operación & Qué hace & Cajón 2 & DIP de datos: subir & Usa B\\\midrule
+    \orden{ADD} & A + B & \texttt{0000 0000} & ninguno & sí\\
+    \orden{SUB} & A $-$ B & \texttt{0001 0000} & 5 & sí\\
+    \orden{AND} & A y B, bit a bit & \texttt{0010 0000} & 6 & sí\\
+    \orden{OR} & A o B, bit a bit & \texttt{0011 0000} & 5, 6 & sí\\
+    \orden{XOR} & A distinto de B, bit a bit & \texttt{0100 0000} & 7 & sí\\
+    \orden{NOT} & invierte A & \texttt{0101 0000} & 5, 7 & no\\
+    \orden{SHL} & corre A a la izquierda & \texttt{0110 0000} & 6, 7 & no\\
+    \orden{SHR} & corre A a la derecha & \texttt{0111 0000} & 5, 6, 7 & no\\\bottomrule
+  \end{tabular}
+  \vfill
+  \raggedright\small
+  En el DIP de dirección siempre va el interruptor \textbf{2} (cajón 2). El resultado siempre queda en A y lo muestra OUT.\par\smallskip
+  \textbf{Banderas:} Z y N valen en todas. C y V solo tienen sentido después de ADD y SUB; en las demás, ignóralas.
+\end{frame}
+
+\begin{frame}{SUB · resta}
+  \textbf{Qué hace:} A $-$ B, el número del cajón 6 menos el del cajón 7.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0001 0000}{0,0,0,0,1,0,0,0}{interruptor 5}
+  \column{0.6\textwidth}
+    \centering
+    \begin{tabular}{rll}
+      \filabits{A}{0,0,0,0,0,1,0,1}{5}\\[2mm]
+      \filabits{B}{0,0,0,0,0,0,1,1}{3}\\[2mm]
+      \filabits[red]{\textbf{A $-$ B}}{0,0,0,0,0,0,1,0}{\textbf{2}}\\
+    \end{tabular}
+  \end{columns}
+  \vfill
+  \small Ejemplo 5 $-$ 3: cajón 6 $=$ 5 (interruptores 1 y 3), cajón 7 $=$ 3 (interruptores 1 y 2). \textbf{OUT $=$ 0000 0010}. Se enciende \textbf{C}: no hubo préstamo, porque A $\geq$ B.\par\smallskip
+  \ojo{El orden importa. 1 $-$ 2 da \texttt{1111 1111}, que en complemento a dos es $-1$, y se enciende N (negativo).}
+\end{frame}
+
+\begin{frame}{AND · bit a bit}
+  \textbf{Qué hace:} cada bit del resultado es 1 solo si el bit de A \textbf{y} el de B son 1.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0010 0000}{0,0,0,0,0,1,0,0}{interruptor 6}
+  \column{0.6\textwidth}
+    \centering
+    \begin{tabular}{rll}
+      \filabits{A}{0,0,0,0,1,1,1,1}{15}\\[2mm]
+      \filabits{B}{0,0,0,0,0,1,0,1}{5}\\[2mm]
+      \filabits[red]{\textbf{AND}}{0,0,0,0,0,1,0,1}{\textbf{5}}\\
+    \end{tabular}
+  \end{columns}
+  \vfill
+  \small Valores del PDF: cajón 6 $=$ \texttt{0000 1111} (interruptores 1, 2, 3, 4) y cajón 7 $=$ \texttt{0000 0101} (interruptores 1 y 3). \textbf{OUT $=$ 0000 0101}.\par\smallskip
+  \textcolor{gris}{Con estos mismos datos haces OR, XOR, NOT, SHL y SHR: entre una y otra solo reescribes el cajón 2.}
+\end{frame}
+
+\begin{frame}{OR · bit a bit}
+  \textbf{Qué hace:} cada bit del resultado es 1 si el bit de A \textbf{o} el de B (o los dos) es 1.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0011 0000}{0,0,0,0,1,1,0,0}{interruptores 5 y 6}
+  \column{0.6\textwidth}
+    \centering
+    \begin{tabular}{rll}
+      \filabits{A}{0,0,0,0,1,1,1,1}{15}\\[2mm]
+      \filabits{B}{0,0,0,0,0,1,0,1}{5}\\[2mm]
+      \filabits[red]{\textbf{OR}}{0,0,0,0,1,1,1,1}{\textbf{15}}\\
+    \end{tabular}
+  \end{columns}
+  \vfill
+  \small Mismos datos que AND. \textbf{OUT $=$ 0000 1111}.
+\end{frame}
+
+\begin{frame}{XOR · bit a bit}
+  \textbf{Qué hace:} cada bit del resultado es 1 solo si los bits de A y de B son \textbf{distintos}.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0100 0000}{0,0,0,0,0,0,1,0}{interruptor 7}
+  \column{0.6\textwidth}
+    \centering
+    \begin{tabular}{rll}
+      \filabits{A}{0,0,0,0,1,1,1,1}{15}\\[2mm]
+      \filabits{B}{0,0,0,0,0,1,0,1}{5}\\[2mm]
+      \filabits[red]{\textbf{XOR}}{0,0,0,0,1,0,1,0}{\textbf{10}}\\
+    \end{tabular}
+  \end{columns}
+  \vfill
+  \small Mismos datos que AND. \textbf{OUT $=$ 0000 1010}.
+\end{frame}
+
+\begin{frame}{NOT · invierte A}
+  \textbf{Qué hace:} cambia cada bit de A: los 0 pasan a 1 y los 1 pasan a 0. No usa B.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0101 0000}{0,0,0,0,1,0,1,0}{interruptores 5 y 7}
+  \column{0.6\textwidth}
+    \centering
+    \begin{tabular}{rll}
+      \filabits{A}{0,0,0,0,1,1,1,1}{15}\\[2mm]
+      \filabits[red]{\textbf{NOT}}{1,1,1,1,0,0,0,0}{\textbf{240}}\\
+    \end{tabular}
+  \end{columns}
+  \vfill
+  \small Usa A $=$ \texttt{0000 1111} del cajón 6. El cajón 7 se carga en B, pero no se usa. \textbf{OUT $=$ 1111 0000}. Se enciende \textbf{N} porque el bit 7 quedó en 1.
+\end{frame}
+
+\begin{frame}{SHL · corre A a la izquierda}
+  \textbf{Qué hace:} mueve cada bit de A un lugar a la izquierda. Por la derecha entra un 0 y el bit 7 se pierde. Equivale a multiplicar por 2.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0110 0000}{0,0,0,0,0,1,1,0}{interruptores 6 y 7}
+  \column{0.6\textwidth}
+    \centering\corrimiento{0,0,0,0,1,1,1,1}{0,0,0,1,1,1,1,0}{1}{SHL}
+  \end{columns}
+  \vfill
+  \small Usa A $=$ \texttt{0000 1111} (15). No usa B. \textbf{OUT $=$ 0001 1110} (30 $=$ 15 $\times$ 2).
+\end{frame}
+
+\begin{frame}{SHR · corre A a la derecha}
+  \textbf{Qué hace:} mueve cada bit de A un lugar a la derecha. Por la izquierda entra un 0 y el bit 0 se pierde. Equivale a dividir entre 2, sin decimales.
+  \medskip
+  \begin{columns}[T]
+  \column{0.38\textwidth}
+    \opdip{0111 0000}{0,0,0,0,1,1,1,0}{interruptores 5, 6 y 7}
+  \column{0.6\textwidth}
+    \centering\corrimiento{0,0,0,0,1,1,1,1}{0,0,0,0,0,1,1,1}{0}{SHR}
+  \end{columns}
+  \vfill
+  \small Usa A $=$ \texttt{0000 1111} (15). No usa B. \textbf{OUT $=$ 0000 0111} (7 $=$ 15 $\div$ 2, sin el decimal).
+\end{frame}
+
+\begin{frame}{Referencia: las demás órdenes}
+  \centering\footnotesize
+  \begin{tabular}{@{}lllcc@{}}
+    \toprule Orden & Código & Qué hace & Subir (orden) & Subir (cajón n)\\\midrule
+    \orden{LDA n} & \texttt{1000 n} & Carga A con el cajón n & 8 & n\\
+    \orden{LDB n} & \texttt{1001 n} & Carga B con el cajón n & 8, 5 & n\\
+    \orden{STA n} & \texttt{1010 n} & Guarda A en el cajón n & 8, 6 & n\\
+    \orden{JMP n} & \texttt{1011 n} & Salta al cajón n & 8, 6, 5 & n\\
+    \orden{JZ n} & \texttt{1100 n} & Salta al cajón n solo si Z $=$ 1 & 8, 7 & n\\
+    \orden{OUT} & \texttt{1101 0000} & Muestra A en los LEDs OUT & 8, 7, 5 & ---\\
+    \orden{HLT} & \texttt{1110 0000} & Detiene el reloj & 8, 7, 6 & ---\\\bottomrule
+  \end{tabular}
+  \vfill
+  \raggedright
+  \textbf{n} es un cajón del 0 al 7, puesto con los interruptores 1 (vale 1), 2 (vale 2) y 3 (vale 4) del DIP de datos. El interruptor 4 va siempre abajo.\par\smallskip
+  Ejemplo: \orden{LDA 6} $=$ interruptor 8 (LDA) y, para el 6, los interruptores 2 y 3.\par\smallskip
+  \textcolor{gris}{Las 8 operaciones de la ALU (códigos \texttt{0000} a \texttt{0111}) están en la tabla del cajón 2.}
+\end{frame}
+
+\end{document}
