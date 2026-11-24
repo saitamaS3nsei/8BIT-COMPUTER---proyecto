@@ -4,7 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../fisico');
-const jar=process.env.LOGISIM_JAR??path.resolve(base,'../../logisim-evolution-5.0.0-all.jar');
+const jar=process.env.LOGISIM_JAR??path.resolve(base,'../logisim-evolution-5.0.0-all.jar');
 if(!fs.existsSync(jar)){console.error(`No se encuentra el JAR de Logisim: ${jar}\nIndícalo con LOGISIM_JAR=/ruta/logisim-evolution-5.0.0-all.jar`);process.exit(2);}
 const circ=path.join(base,'pruebas/bancos.circ');
 const evidence=path.join(base,'evidencias');fs.mkdirSync(evidence,{recursive:true});

@@ -2,8 +2,6 @@
 
 Esta carpeta simula el diseño de `PLAN_CONSTRUCCION.md` chip por chip. Cada circuito integrado de la protoboard es un chip de la librería TTL de Logisim Evolution, con los mismos números de pin del datasheet. Las compuertas sueltas están agrupadas en chips 74LS00, 04, 08, 32 y 86, igual que en la protoboard.
 
-Los otros circuitos del proyecto (`esquema/`, `compuertas/`) son una arquitectura distinta (ISA con opcodes 0 a F, 6 fases, ROM de control). Este es el que corresponde al plan de construcción.
-
 ## Archivos
 
 | Archivo | Contenido |
