@@ -5,6 +5,7 @@ Proyecto de una computadora de 8 bits (arquitectura de acumulador, 8 posiciones 
 | Archivo o carpeta | Contenido |
 |---|---|
 | `PLAN_CONSTRUCCION.md` | Guía de armado paso a paso: chips, pines, conexiones y pruebas de cada módulo, y los tres programas del PDF en hexadecimal |
+| `GUIA_PROTEUS.md` | Guía para dibujar el circuito en Proteus (Windows), con la tabla de pines de cada chip |
 | `lista_materiales.html` | Lista de materiales y de compra (se guarda como PDF con Ctrl+P en el navegador) |
 | `fisico/` | Simulación en Logisim Evolution de ese mismo diseño, chip por chip. Ver `fisico/LEEME.md` |
 | `herramientas/` | Scripts que generan y validan la simulación |

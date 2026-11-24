@@ -22,6 +22,16 @@ Cambios respecto a la lista de compra anterior (ya corregidos en `lista_material
 5. Todas las señales "/X" son activas en bajo (activas cuando valen 0).
 6. En cada paso, revisa con el multímetro continuidad y que no haya +5 V cruzado con GND.
 
+### 0.1 Cómo identificar los pines de un chip
+
+1. Busca la **muesca** (media luna) en un extremo del chip, o un punto grabado junto a una esquina. Ese extremo es la parte de arriba.
+2. Con la muesca hacia arriba y mirando el chip desde arriba, el **pin 1** es el de la esquina superior izquierda, junto a la muesca.
+3. Cuenta hacia abajo por el lado izquierdo (1, 2, 3 …). Al llegar al fondo, sigue por el lado derecho hacia arriba. El **último pin** (14, 16 o 20) queda arriba a la derecha.
+4. Alimentación: el último pin es **VCC (+5 V)** y el pin de abajo a la izquierda (7, 8 o 10) es **GND**. Siempre verifícalo con el dibujo del apéndice.
+5. En la protoboard, el chip se pone **cruzando el canal central**: así los pines de un lado quedan en columnas separadas de los del otro lado. Con la muesca a la izquierda, el pin 1 queda abajo a la izquierda.
+6. Los dibujos de cada chip están al final de este documento, en el **Apéndice. Patillaje de cada chip**. Los nombres de los pines coinciden con las tablas de conexión de cada paso.
+
+
 ## 1. Arquitectura que vamos a construir
 
 **Bus de datos BUS[7:0]**, compartido. Quién puede escribir en él (solo uno a la vez):
@@ -90,7 +100,7 @@ El opcode ocupa los bits IR7 a IR4 y el operando los bits IR3 a IR0. IR7 (bit 3 
 - La salida es el pin 3. Con esos valores va de unos 7 Hz a varios cientos de Hz.
 
 **Paso a paso con antirrebote (74LS00, latch SR):**
-- Pulsador SPDT: el común a GND.
+- Pulsador SPDT: el común a GND. El contacto A es el **normalmente cerrado** y el B el **normalmente abierto**.
 - Contacto A del pulsador al pin 1 y contacto B al pin 4. Cada uno con una resistencia de 10 kΩ a +5 V.
 - Pin 3 al pin 5, y pin 6 al pin 2.
 - La salida STEP es el pin 3.
@@ -404,3 +414,227 @@ Para el requisito 14 y los entregables del PDF, toma nota en cada paso de:
 - Errores que encontraste y cómo los resolviste.
 - Tablas de verdad (decodificadores, selector de ALU, señales de control).
 - Diagrama de estados del ciclo T0 a T3.
+
+---
+
+## Apéndice. Patillaje de cada chip
+
+Todos los dibujos están vistos **desde arriba**, con la muesca del chip hacia arriba. Los pines se cuentan por el lado izquierdo hacia abajo y por el derecho hacia arriba. El nombre de cada pin coincide con el que usan las tablas de conexión de los pasos. Las señales con `/` son activas en bajo.
+
+### 74LS00 (4 NAND), 74LS08 (4 AND), 74LS32 (4 OR), 74LS86 (4 XOR)
+
+Las cuatro tienen los mismos pines. Cada compuerta: dos entradas (A, B) y una salida (Y).
+
+```
+          ╭───◡───╮
+    1A  1 ┤       ├ 14 VCC
+    1B  2 ┤       ├ 13 4B
+    1Y  3 ┤       ├ 12 4A
+    2A  4 ┤       ├ 11 4Y
+    2B  5 ┤       ├ 10 3B
+    2Y  6 ┤       ├ 9  3A
+   GND  7 ┤       ├ 8  3Y
+          ╰───────╯
+```
+
+### 74LS04 (6 inversores)
+
+Cada inversor: una entrada (A) y una salida (Y).
+
+```
+          ╭───◡───╮
+    1A  1 ┤       ├ 14 VCC
+    1Y  2 ┤       ├ 13 6A
+    2A  3 ┤       ├ 12 6Y
+    2Y  4 ┤       ├ 11 5A
+    3A  5 ┤       ├ 10 5Y
+    3Y  6 ┤       ├ 9  4A
+   GND  7 ┤       ├ 8  4Y
+          ╰───────╯
+```
+
+### 74LS74 (2 flip-flops D)
+
+/CLR y /PRE son activos en bajo: déjalos a +5 V si no los usas.
+
+```
+          ╭───◡───╮
+ /1CLR  1 ┤       ├ 14 VCC
+    1D  2 ┤       ├ 13 /2CLR
+  1CLK  3 ┤       ├ 12 2D
+ /1PRE  4 ┤       ├ 11 2CLK
+    1Q  5 ┤       ├ 10 /2PRE
+   /1Q  6 ┤       ├ 9  2Q
+   GND  7 ┤       ├ 8  /2Q
+          ╰───────╯
+```
+
+### 74LS30 (NAND de 8 entradas)
+
+NC = no conectar.
+
+```
+          ╭───◡───╮
+     A  1 ┤       ├ 14 VCC
+     B  2 ┤       ├ 13 NC
+     C  3 ┤       ├ 12 H
+     D  4 ┤       ├ 11 G
+     E  5 ┤       ├ 10 NC
+     F  6 ┤       ├ 9  NC
+   GND  7 ┤       ├ 8  Y
+          ╰───────╯
+```
+
+### 74LS138 (decodificador 3 a 8)
+
+Salidas activas en bajo.
+
+```
+          ╭───◡───╮
+     A  1 ┤       ├ 16 VCC
+     B  2 ┤       ├ 15 Y0
+     C  3 ┤       ├ 14 Y1
+  /G2A  4 ┤       ├ 13 Y2
+  /G2B  5 ┤       ├ 12 Y3
+    G1  6 ┤       ├ 11 Y4
+    Y7  7 ┤       ├ 10 Y5
+   GND  8 ┤       ├ 9  Y6
+          ╰───────╯
+```
+
+### 74LS151 (multiplexor 8 a 1)
+
+Selección: C es el bit más alto, A el más bajo. W es la salida invertida.
+
+```
+          ╭───◡───╮
+    D3  1 ┤       ├ 16 VCC
+    D2  2 ┤       ├ 15 D4
+    D1  3 ┤       ├ 14 D5
+    D0  4 ┤       ├ 13 D6
+     Y  5 ┤       ├ 12 D7
+     W  6 ┤       ├ 11 A
+    /E  7 ┤       ├ 10 B
+   GND  8 ┤       ├ 9  C
+          ╰───────╯
+```
+
+### 74LS157 (4 multiplexores 2 a 1)
+
+Con S=0 sale A, con S=1 sale B. /G a GND lo mantiene habilitado.
+
+```
+          ╭───◡───╮
+     S  1 ┤       ├ 16 VCC
+    1A  2 ┤       ├ 15 /G
+    1B  3 ┤       ├ 14 4A
+    1Y  4 ┤       ├ 13 4B
+    2A  5 ┤       ├ 12 4Y
+    2B  6 ┤       ├ 11 3A
+    2Y  7 ┤       ├ 10 3B
+   GND  8 ┤       ├ 9  3Y
+          ╰───────╯
+```
+
+### 74LS161 (contador de 4 bits)
+
+/CLR asíncrono, /LOAD síncrono. QA es el bit menos significativo.
+
+```
+          ╭───◡───╮
+  /CLR  1 ┤       ├ 16 VCC
+   CLK  2 ┤       ├ 15 RCO
+     A  3 ┤       ├ 14 QA
+     B  4 ┤       ├ 13 QB
+     C  5 ┤       ├ 12 QC
+     D  6 ┤       ├ 11 QD
+   ENP  7 ┤       ├ 10 ENT
+   GND  8 ┤       ├ 9  /LOAD
+          ╰───────╯
+```
+
+### 74LS283 (sumador de 4 bits)
+
+S1 y A1/B1 son los bits menos significativos. C0 es el acarreo de entrada y C4 el de salida.
+
+```
+          ╭───◡───╮
+    S2  1 ┤       ├ 16 VCC
+    B2  2 ┤       ├ 15 B3
+    A2  3 ┤       ├ 14 A3
+    S1  4 ┤       ├ 13 S3
+    A1  5 ┤       ├ 12 A4
+    B1  6 ┤       ├ 11 B4
+    C0  7 ┤       ├ 10 S4
+   GND  8 ┤       ├ 9  C4
+          ╰───────╯
+```
+
+### 74LS245 (buffer bidireccional de 8 bits)
+
+Con DIR=1 pasa de A a B. Con /OE=1 queda desconectado del bus.
+
+```
+          ╭───◡───╮
+   DIR  1 ┤       ├ 20 VCC
+    A1  2 ┤       ├ 19 /OE
+    A2  3 ┤       ├ 18 B1
+    A3  4 ┤       ├ 17 B2
+    A4  5 ┤       ├ 16 B3
+    A5  6 ┤       ├ 15 B4
+    A6  7 ┤       ├ 14 B5
+    A7  8 ┤       ├ 13 B6
+    A8  9 ┤       ├ 12 B7
+   GND 10 ┤       ├ 11 B8
+          ╰───────╯
+```
+
+### 74LS377 (registro de 8 bits con habilitación)
+
+Carga en el flanco de subida del CLK cuando /E vale 0.
+
+```
+          ╭───◡───╮
+    /E  1 ┤       ├ 20 VCC
+    1Q  2 ┤       ├ 19 8Q
+    1D  3 ┤       ├ 18 8D
+    2D  4 ┤       ├ 17 7D
+    2Q  5 ┤       ├ 16 7Q
+    3Q  6 ┤       ├ 15 6Q
+    3D  7 ┤       ├ 14 6D
+    4D  8 ┤       ├ 13 5D
+    4Q  9 ┤       ├ 12 5Q
+   GND 10 ┤       ├ 11 CLK
+          ╰───────╯
+```
+
+### 74LS374 (registro de 8 bits con salida triestado)
+
+Igual que el 74LS377, pero el pin 1 es /OC (habilita la salida cuando vale 0).
+
+```
+          ╭───◡───╮
+   /OC  1 ┤       ├ 20 VCC
+    1Q  2 ┤       ├ 19 8Q
+    1D  3 ┤       ├ 18 8D
+    2D  4 ┤       ├ 17 7D
+    2Q  5 ┤       ├ 16 7Q
+    3Q  6 ┤       ├ 15 6Q
+    3D  7 ┤       ├ 14 6D
+    4D  8 ┤       ├ 13 5D
+    4Q  9 ┤       ├ 12 5Q
+   GND 10 ┤       ├ 11 CLK
+          ╰───────╯
+```
+
+### NE555 (reloj, 8 pines)
+
+```
+          ╭───◡───╮
+ GND   1 ┤       ├ 8  VCC
+ TRIG  2 ┤       ├ 7  DISCH
+ OUT   3 ┤       ├ 6  THRES
+ RESET 4 ┤       ├ 5  CTRL
+          ╰───────╯
+```
+

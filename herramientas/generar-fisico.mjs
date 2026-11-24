@@ -230,4 +230,6 @@ fs.writeFileSync(path.join(root,'pruebas/programas.json'),JSON.stringify(program
 const per=b.counts();const total={};for(const m of Object.values(per))for(const [k,v] of Object.entries(m))total[k]=(total[k]??0)+v;
 total['74LS374 (celdas de memoria)']=8;
 fs.writeFileSync(path.join(root,'chips.json'),JSON.stringify({porModulo:per,total},null,2));
+// Netlist exportada: la usa generar-guia-proteus.mjs para escribir las tablas de conexión.
+fs.writeFileSync(path.join(root,'netlist.json'),JSON.stringify({spec:SPEC,modulos:[...b.mods].map(([m,list])=>({modulo:m,chips:list.map(ch=>({label:ch.label,type:ch.type,nets:ch.nets}))}))},null,1));
 console.log('Chips por tipo:',JSON.stringify(total));
