@@ -1,0 +1,254 @@
+{
+  "P1_SUMA": {
+    "title": "Programa 1: 5 + 3",
+    "words": [
+      134,
+      151,
+      0,
+      208,
+      224,
+      0,
+      5,
+      3
+    ],
+    "expect": {
+      "OUT": 8,
+      "PC": 5,
+      "A": 8,
+      "B": 3,
+      "FLAGS": 0,
+      "HALTED": 1
+    }
+  },
+  "P2_AND": {
+    "title": "Programa 2: 0F AND 05",
+    "words": [
+      135,
+      150,
+      32,
+      208,
+      224,
+      0,
+      5,
+      15
+    ],
+    "expect": {
+      "OUT": 5,
+      "PC": 5,
+      "A": 5,
+      "B": 5,
+      "FLAGS": 0,
+      "HALTED": 1
+    }
+  },
+  "P2_OR": {
+    "title": "Programa 2: 0F OR 05",
+    "words": [
+      135,
+      150,
+      48,
+      208,
+      224,
+      0,
+      5,
+      15
+    ],
+    "expect": {
+      "OUT": 15,
+      "PC": 5,
+      "A": 15,
+      "B": 5,
+      "FLAGS": 0,
+      "HALTED": 1
+    }
+  },
+  "P2_XOR": {
+    "title": "Programa 2: 0F XOR 05",
+    "words": [
+      135,
+      150,
+      64,
+      208,
+      224,
+      0,
+      5,
+      15
+    ],
+    "expect": {
+      "OUT": 10,
+      "PC": 5,
+      "A": 10,
+      "B": 5,
+      "FLAGS": 0,
+      "HALTED": 1
+    }
+  },
+  "P3_JZ_SALTA": {
+    "title": "Programa 3: JZ salta (resultado cero)",
+    "words": [
+      133,
+      149,
+      208,
+      16,
+      198,
+      224,
+      208,
+      224
+    ],
+    "expect": {
+      "OUT": 0,
+      "PC": 0,
+      "A": 0,
+      "B": 224,
+      "FLAGS": 3,
+      "HALTED": 1
+    }
+  },
+  "P3_JZ_NO_SALTA": {
+    "title": "Programa 3: JZ no salta (resultado distinto de cero)",
+    "words": [
+      133,
+      150,
+      208,
+      16,
+      198,
+      224,
+      208,
+      224
+    ],
+    "expect": {
+      "OUT": 224,
+      "PC": 6,
+      "A": 16,
+      "B": 208,
+      "FLAGS": 2,
+      "HALTED": 1
+    }
+  },
+  "STA_LDA": {
+    "title": "STA y LDA: guardar en memoria y recuperar",
+    "words": [
+      134,
+      167,
+      151,
+      0,
+      208,
+      224,
+      42,
+      0
+    ],
+    "expect": {
+      "OUT": 84,
+      "PC": 6,
+      "A": 84,
+      "B": 42,
+      "FLAGS": 0,
+      "HALTED": 1
+    }
+  },
+  "JMP": {
+    "title": "JMP: salto incondicional",
+    "words": [
+      179,
+      224,
+      224,
+      135,
+      208,
+      224,
+      0,
+      42
+    ],
+    "expect": {
+      "OUT": 42,
+      "PC": 6,
+      "A": 42,
+      "B": null,
+      "FLAGS": null,
+      "HALTED": 1
+    }
+  },
+  "NOT_SHL_SHR": {
+    "title": "NOT, SHL y SHR",
+    "words": [
+      135,
+      80,
+      96,
+      112,
+      208,
+      224,
+      0,
+      15
+    ],
+    "expect": {
+      "OUT": 112,
+      "PC": 6,
+      "A": 112,
+      "B": null,
+      "FLAGS": null,
+      "HALTED": 1
+    }
+  },
+  "OVERFLOW": {
+    "title": "Overflow con signo: 7F + 01",
+    "words": [
+      134,
+      151,
+      0,
+      208,
+      224,
+      0,
+      127,
+      1
+    ],
+    "expect": {
+      "OUT": 128,
+      "PC": 5,
+      "A": 128,
+      "B": 1,
+      "FLAGS": 12,
+      "HALTED": 1
+    }
+  },
+  "RESTA_NEG": {
+    "title": "Resta negativa: 3 - 5",
+    "words": [
+      134,
+      151,
+      16,
+      208,
+      224,
+      0,
+      3,
+      5
+    ],
+    "expect": {
+      "OUT": 254,
+      "PC": 5,
+      "A": 254,
+      "B": 5,
+      "FLAGS": 4,
+      "HALTED": 1
+    }
+  },
+  "ACARREO_CERO": {
+    "title": "Acarreo y cero: FF + 01",
+    "words": [
+      134,
+      151,
+      0,
+      208,
+      224,
+      0,
+      255,
+      1
+    ],
+    "expect": {
+      "OUT": 0,
+      "PC": 5,
+      "A": 0,
+      "B": 1,
+      "FLAGS": 3,
+      "HALTED": 1
+    }
+  }
+}

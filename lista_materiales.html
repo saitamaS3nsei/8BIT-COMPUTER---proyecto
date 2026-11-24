@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Lista de materiales - Computadora de 8 bits</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; color: #111; }
+  h1 { font-size: 18pt; margin-bottom: 2px; }
+  h2 { font-size: 13pt; margin-top: 18px; border-bottom: 2px solid #333; padding-bottom: 2px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 6px; }
+  th, td { border: 1px solid #555; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #e5e5e5; }
+  td.chk { width: 24px; text-align: center; }
+  td.qty { width: 50px; text-align: center; }
+  td.req { width: 60px; text-align: center; }
+  .nota { font-size: 10pt; color: #333; }
+  tr { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>Lista de materiales: computadora didáctica de 8 bits</h1>
+<p class="nota">Actualizada según <b>PLAN_CONSTRUCCION.md</b> y verificada contra los requisitos mínimos de la sección 9 del PDF. Familia 74LS (o 74HC). La columna "Paso" indica en qué paso del plan se monta cada cosa. Las cantidades de compuertas de la unidad de control son estimadas y se confirman en el paso 7. Marca la casilla cuando tengas el componente.</p>
+
+<h2>Paso 1. Alimentación y montaje</h2>
+<p class="nota">La alimentación sale de una <b>fuente de laboratorio</b> (no se compra). Ajústala a 5.0 V con límite de corriente de 2 A antes de conectar los chips.</p>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">6 a 8</td><td>Protoboards de 830 puntos</td><td>Montaje (unos 66 chips)</td><td class="req">-</td></tr>
+<tr><td class="chk">☐</td><td class="qty">40</td><td>Condensadores 100 nF</td><td>Uno por cada 74LS161, 74LS377, 74LS374, 74LS245 y 74LS74 (unos 25) y uno por cada 2 o 3 chips de lógica (unos 15). Pegado a VCC y GND</td><td class="req">-</td></tr>
+<tr><td class="chk">☐</td><td class="qty">4 rollos</td><td>Cable sólido 22 AWG: rojo, negro, amarillo y azul</td><td>Rojo +5 V, negro GND, amarillo bus de datos, azul señales de control</td><td class="req">-</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1 kit</td><td>Cables jumper precortados</td><td>Conexiones</td><td class="req">-</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Multímetro</td><td>Revisar 5 V y continuidad (si no tienes uno)</td><td class="req">-</td></tr>
+</table>
+
+<h2>Paso 2. Reloj y reset (Req. 1)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>NE555</td><td>Reloj automático</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Potenciómetro 100 kΩ</td><td>Velocidad del reloj (de ~7 Hz a cientos de Hz)</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>Resistencias 1 kΩ</td><td>R1 del 555 y resistencia en serie con el potenciómetro</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Condensador 1 µF</td><td>Temporización del 555</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Condensador 10 nF</td><td>Pin 5 del 555</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>Pulsadores conmutados (SPDT)</td><td>Paso a paso (paso 2) y escritura de memoria (paso 5). Necesitan contacto conmutado para el antirrebote con latch</td><td class="req">1, 12</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Pulsador de dos patas</td><td>RESET</td><td class="req">1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor deslizante</td><td>Selector reloj automático / manual</td><td class="req">1</td></tr>
+</table>
+<p class="nota">El antirrebote usa 2 compuertas de un 74LS00 por pulsador (ver lista de chips).</p>
+
+<h2>Paso 3. Contador de programa, PC (Req. 2)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS161</td><td>PC completo: cuenta, RESET, carga de salto y habilitación</td><td class="req">2</td></tr>
+</table>
+<p class="nota">El PC con 74LS74 + 74LS86 + 74LS08 + 74LS157 ya no se usa: el 74LS161 solo cubre las cuatro funciones del PDF con un único chip.</p>
+
+<h2>Pasos 4 y 5. Bus, registros y memoria (Req. 3, 4, 5, 6, 7, 12, 13; sección 1.1)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">7</td><td>74LS377</td><td>Registros A, B, IR, OUT, MAR, MDR y banderas. Cargan con el reloj común y una señal de habilitación (/E)</td><td class="req">4, 5, 13, 1.1</td></tr>
+<tr><td class="chk">☐</td><td class="qty">3</td><td>74LS245</td><td>Buffers triestado al bus: de A, de la ALU y de los interruptores de datos</td><td class="req">6</td></tr>
+<tr><td class="chk">☐</td><td class="qty">8</td><td>74LS374</td><td>Las 8 posiciones de la memoria (salida triestado al bus)</td><td class="req">3</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS138</td><td>DEMUX de escritura y decodificador de lectura de la memoria</td><td class="req">7</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS157</td><td>Selector de dirección PC / operando del IR, y selector normal / manual (modo programación)</td><td class="req">3, 12</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor DIP de 8 posiciones</td><td>Datos para programar la memoria</td><td class="req">12</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor DIP de 4 posiciones</td><td>Dirección manual (usa 3)</td><td class="req">12</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor deslizante</td><td>PROG / RUN</td><td class="req">12</td></tr>
+</table>
+<p class="nota">Las salidas de los DIP llevan resistencias de 10 kΩ a GND (11 en total).</p>
+
+<h2>Paso 6. ALU y banderas (Req. 8, 9; sección 1.5)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS283</td><td>Sumador de 8 bits (ADD y SUB)</td><td class="req">8</td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS86</td><td>2 para invertir B en la resta, 2 para la operación XOR y 1 para la bandera V</td><td class="req">8, 9</td></tr>
+<tr><td class="chk">☐</td><td class="qty">8</td><td>74LS151</td><td>Un multiplexor 8:1 por bit para elegir la operación. SHL y SHR son solo cableado</td><td class="req">1.5</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS30</td><td>Detectar resultado cero (bandera Z)</td><td class="req">1.5</td></tr>
+</table>
+<p class="nota">Las compuertas AND, OR y NOT de la ALU salen de los 74LS08, 74LS32 y 74LS04 de la lista de compuertas de abajo. Las banderas Z, C, N y V van en uno de los 74LS377. No se usa el 74LS181: el PDF pide el sumador completo.</p>
+
+<h2>Paso 7. Unidad de control (Req. 10, 11)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS161</td><td>Contador de fases T0 a T3</td><td class="req">11</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS138</td><td>Decodificador de fases y decodificador de instrucción (bit 3 del opcode en 1)</td><td class="req">10, 11</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS74</td><td>Bandera HLT (usa un flip-flop)</td><td class="req">10</td></tr>
+</table>
+<p class="nota">Las instrucciones de la ALU (bit 3 en 0) no se decodifican: los bits 2 a 0 del IR van directo al selector de la ALU.</p>
+
+<h2>Compuertas (ALU, control, antirrebote y modo PROG)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Dónde se usa</th><th></th></tr>
+<tr><td class="chk">☐</td><td class="qty">6</td><td>74LS08 (AND)</td><td>ALU (8 AND, SUB y bandera V), reloj, memoria y control</td><td></td></tr>
+<tr><td class="chk">☐</td><td class="qty">6</td><td>74LS32 (OR)</td><td>ALU (8 OR), reloj, memoria y control</td><td></td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS04 (NOT)</td><td>ALU (8 NOT), reloj e inversores de control</td><td></td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS00 (NAND)</td><td>Antirrebote de paso y escritura, y señales de control activas en bajo</td><td></td></tr>
+</table>
+<p class="nota">Estas cantidades salen de la simulación en Logisim (fisico/chips.json): es el conteo real de compuertas del diseño. Compra al menos 1 extra de cada tipo.</p>
+
+<h2>Salida y visualización (Req. 13; sección 1.7)</h2>
+<table>
+<tr><th></th><th>Cant.</th><th>Componente</th><th>Para qué sirve</th><th>Req.</th></tr>
+<tr><td class="chk">☐</td><td class="qty">41</td><td>LEDs</td><td>Bus (8), A (8), IR (8), OUT (8), PC (3), fases (2) y banderas (4). B, MDR y MAR se observan moviendo LEDs</td><td class="req">13</td></tr>
+<tr><td class="chk">☐</td><td class="qty">41</td><td>Resistencias 330 Ω</td><td>Una por LED</td><td class="req">13</td></tr>
+<tr><td class="chk">☐</td><td class="qty">16</td><td>Resistencias 10 kΩ</td><td>Pull-up de reset (1), pull-ups de los dos latch de pulsadores SPDT (4) y pull-downs de los DIP (11)</td><td class="req">-</td></tr>
+</table>
+
+<h2>LISTA DE COMPRA CONSOLIDADA</h2>
+<p class="nota">Totales por tipo de chip: <b>66 chips</b> (65 TTL y un 555), contados en la simulación de Logisim (fisico/chips.json). Compra 2 piezas extra de 74LS377, 74LS374, 74LS245, 74LS86, 74LS08 y 74LS00, porque se dañan o se conectan mal con facilidad.</p>
+<table>
+<tr><th></th><th>Cant.</th><th>Chip</th><th>Uso</th></tr>
+<tr><td class="chk">☐</td><td class="qty">8</td><td>74LS374</td><td>Memoria</td></tr>
+<tr><td class="chk">☐</td><td class="qty">8</td><td>74LS151</td><td>Selector de operación de la ALU</td></tr>
+<tr><td class="chk">☐</td><td class="qty">7</td><td>74LS377</td><td>Registros A, B, IR, OUT, MAR, MDR y banderas</td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS86</td><td>XOR de la ALU y bandera V</td></tr>
+<tr><td class="chk">☐</td><td class="qty">6</td><td>74LS08</td><td>AND de la ALU, reloj, memoria y control</td></tr>
+<tr><td class="chk">☐</td><td class="qty">4</td><td>74LS138</td><td>2 de memoria y 2 de control</td></tr>
+<tr><td class="chk">☐</td><td class="qty">6</td><td>74LS32</td><td>OR de la ALU, reloj, memoria y control</td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS04</td><td>NOT de la ALU e inversores</td></tr>
+<tr><td class="chk">☐</td><td class="qty">3</td><td>74LS245</td><td>Buffers del bus</td></tr>
+<tr><td class="chk">☐</td><td class="qty">5</td><td>74LS00</td><td>Antirrebote y control</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS161</td><td>PC y contador de fases</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS157</td><td>Selectores de dirección</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>74LS283</td><td>Sumador de 8 bits</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS30</td><td>Detección de cero</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>74LS74</td><td>Bandera HLT</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>NE555</td><td>Reloj</td></tr>
+</table>
+<table>
+<tr><th></th><th>Cant.</th><th>Otros componentes</th></tr>
+<tr><td class="chk">☐</td><td class="qty">41</td><td>LEDs</td></tr>
+<tr><td class="chk">☐</td><td class="qty">41</td><td>Resistencias 330 Ω</td></tr>
+<tr><td class="chk">☐</td><td class="qty">16</td><td>Resistencias 10 kΩ</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>Resistencias 1 kΩ</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Potenciómetro 100 kΩ</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor DIP de 8 posiciones</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Interruptor DIP de 4 posiciones</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>Interruptores deslizantes (AUTO/MANUAL y PROG/RUN)</td></tr>
+<tr><td class="chk">☐</td><td class="qty">2</td><td>Pulsadores conmutados SPDT (paso a paso y escritura)</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Pulsador de dos patas (RESET)</td></tr>
+<tr><td class="chk">☐</td><td class="qty">40</td><td>Condensadores 100 nF</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1</td><td>Condensadores 1 µF y 10 nF (uno de cada, para el 555)</td></tr>
+<tr><td class="chk">☐</td><td class="qty">6 a 8</td><td>Protoboards de 830 puntos</td></tr>
+<tr><td class="chk">☐</td><td class="qty">1 kit</td><td>Cables jumper precortados</td></tr>
+<tr><td class="chk">☐</td><td class="qty">4</td><td>Rollos de cable sólido 22 AWG (rojo, negro, amarillo y azul)</td></tr>
+</table>
+
+<h2>Qué comprar primero</h2>
+<table>
+<tr><th>Etapa</th><th>Pasos del plan</th><th>Comprar</th></tr>
+<tr><td>1</td><td>1 a 3 (alimentación, reloj, PC)</td><td>Protoboards, cables, 555, 74LS00 ×5, 74LS161 ×2, pulsadores, potenciómetro, LEDs y resistencias, condensadores</td></tr>
+<tr><td>2</td><td>4 y 5 (bus, registros, memoria)</td><td>74LS377 ×7, 74LS245 ×3, 74LS374 ×8, 74LS138 ×4, 74LS157 ×2, DIP, interruptores, 74LS04 ×5 y 74LS08 ×6</td></tr>
+<tr><td>3</td><td>6 y 7 (ALU y control)</td><td>74LS283 ×2, 74LS151 ×8, 74LS86 ×5, 74LS32 ×6, 74LS30 y 74LS74</td></tr>
+</table>
+<p class="nota">Las cantidades de compuertas son las contadas en la simulación de Logisim.</p>
+
+<h2>Cobertura de los requisitos mínimos (sección 9)</h2>
+<table>
+<tr><th>Req.</th><th>Requisito</th><th>Cubierto por</th></tr>
+<tr><td>1</td><td>Reloj y RESET</td><td>Paso 2</td></tr>
+<tr><td>2</td><td>PC de 0 a 7</td><td>Paso 3 (74LS161)</td></tr>
+<tr><td>3</td><td>Leer instrucciones de memoria</td><td>Paso 5 (74LS374 y 74LS138)</td></tr>
+<tr><td>4</td><td>Registro IR</td><td>Paso 4 (74LS377)</td></tr>
+<tr><td>5</td><td>Registros A y B</td><td>Paso 4 (74LS377)</td></tr>
+<tr><td>6</td><td>Bus de datos de 8 bits</td><td>Paso 4 (74LS245)</td></tr>
+<tr><td>7</td><td>Direccionamiento con DEMUX</td><td>Paso 5 (74LS138)</td></tr>
+<tr><td>8</td><td>Suma y resta</td><td>Paso 6 (74LS283 y XOR con SUB)</td></tr>
+<tr><td>9</td><td>Al menos tres operaciones lógicas</td><td>Paso 6 (AND, OR, XOR y NOT)</td></tr>
+<tr><td>10</td><td>Unidad de control que decodifica</td><td>Paso 7</td></tr>
+<tr><td>11</td><td>Ciclo fetch, decode y execute</td><td>Paso 7 (fases T0 a T3)</td></tr>
+<tr><td>12</td><td>Tres programas de prueba</td><td>Paso 5 (carga manual) y paso 8 del plan</td></tr>
+<tr><td>13</td><td>Resultados en LEDs</td><td>Paso 4 (registro OUT) y LEDs de salida</td></tr>
+<tr><td>14</td><td>Diagramas, tablas de verdad y documentación</td><td>No es material. Se entrega como documento técnico</td></tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+[
+  {
+    "name": "P1_SUMA",
+    "title": "Programa 1: 5 + 3",
+    "pass": true,
+    "last": {
+      "OUT": 8,
+      "PC": 5,
+      "A": 8,
+      "B": 3,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "P2_AND",
+    "title": "Programa 2: 0F AND 05",
+    "pass": true,
+    "last": {
+      "OUT": 5,
+      "PC": 5,
+      "A": 5,
+      "B": 5,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "P2_OR",
+    "title": "Programa 2: 0F OR 05",
+    "pass": true,
+    "last": {
+      "OUT": 15,
+      "PC": 5,
+      "A": 15,
+      "B": 5,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "P2_XOR",
+    "title": "Programa 2: 0F XOR 05",
+    "pass": true,
+    "last": {
+      "OUT": 10,
+      "PC": 5,
+      "A": 10,
+      "B": 5,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "P3_JZ_SALTA",
+    "title": "Programa 3: JZ salta (resultado cero)",
+    "pass": true,
+    "last": {
+      "OUT": 0,
+      "PC": 0,
+      "A": 0,
+      "B": 224,
+      "IR": 224,
+      "FLAGS": 3,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "P3_JZ_NO_SALTA",
+    "title": "Programa 3: JZ no salta (resultado distinto de cero)",
+    "pass": true,
+    "last": {
+      "OUT": 224,
+      "PC": 6,
+      "A": 16,
+      "B": 208,
+      "IR": 224,
+      "FLAGS": 2,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "STA_LDA",
+    "title": "STA y LDA: guardar en memoria y recuperar",
+    "pass": true,
+    "last": {
+      "OUT": 84,
+      "PC": 6,
+      "A": 84,
+      "B": 42,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "JMP",
+    "title": "JMP: salto incondicional",
+    "pass": true,
+    "last": {
+      "OUT": 42,
+      "PC": 6,
+      "A": 42,
+      "B": 0,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "NOT_SHL_SHR",
+    "title": "NOT, SHL y SHR",
+    "pass": true,
+    "last": {
+      "OUT": 112,
+      "PC": 6,
+      "A": 112,
+      "B": 0,
+      "IR": 224,
+      "FLAGS": 0,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "OVERFLOW",
+    "title": "Overflow con signo: 7F + 01",
+    "pass": true,
+    "last": {
+      "OUT": 128,
+      "PC": 5,
+      "A": 128,
+      "B": 1,
+      "IR": 224,
+      "FLAGS": 12,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "RESTA_NEG",
+    "title": "Resta negativa: 3 - 5",
+    "pass": true,
+    "last": {
+      "OUT": 254,
+      "PC": 5,
+      "A": 254,
+      "B": 5,
+      "IR": 224,
+      "FLAGS": 4,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  },
+  {
+    "name": "ACARREO_CERO",
+    "title": "Acarreo y cero: FF + 01",
+    "pass": true,
+    "last": {
+      "OUT": 0,
+      "PC": 5,
+      "A": 0,
+      "B": 1,
+      "IR": 224,
+      "FLAGS": 3,
+      "HALTED": 1,
+      "PHASE": 3,
+      "CYCLES": 127
+    },
+    "bad": [],
+    "unknownRows": 0,
+    "rows": 256
+  }
+]

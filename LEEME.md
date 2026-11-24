@@ -1,5 +1,7 @@
 # Simulación de la computadora de 8 bits
 
+**Simulación de la versión física (chips 74LS, según `PLAN_CONSTRUCCION.md`):** abrir [fisico/computadora_8_bits_fisica.circ](fisico/computadora_8_bits_fisica.circ) y consultar [su guía](fisico/LEEME.md). Es la que corresponde al prototipo que se va a armar en protoboard. Las versiones descritas más abajo usan otra ISA.
+
 **Esquema cableado basado en la imagen de referencia:** abrir [esquema/computadora_8_bits_cableada.circ](esquema/computadora_8_bits_cableada.circ). Muestra los módulos, el bus central de ocho líneas, las conexiones de control y dos displays. Toda la lógica y el almacenamiento se construyen con compuertas. Consultar [su guía de prueba](esquema/LEEME.md).
 
 **Versión construida íntegramente con compuertas:** abrir [compuertas/computadora_8_bits_compuertas.circ](compuertas/computadora_8_bits_compuertas.circ) y consultar [su guía](compuertas/LEEME.md). Esa versión sustituye los bloques integrados de registros, memoria, selectores y control por compuertas. El resto de este documento describe la primera versión, conservada como referencia.
