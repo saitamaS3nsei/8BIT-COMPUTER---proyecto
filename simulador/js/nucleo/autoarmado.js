@@ -95,9 +95,9 @@
     const clavePin = (p, pin) => S.huella(p).find(h => String(h.pin) === String(pin)).clave;
     const cable = (a, bb, color, extra = {}) => doc.wires.push(Object.assign({ id: nid('w'), a, b: bb, color }, extra));
     const rielDe = (mitad, pol) => (mitad === 'U' ? 'T' : 'B') + pol;
-    function aRiel(t, pol, color) {
+    function aRiel(t, pol, color, extra) {
       const a = libreEnTira(t.board, t.tira);
-      cable(a, libreEnRiel(t.board, rielDe(t.mitad, pol), t.col), color);
+      cable(a, libreEnRiel(t.board, rielDe(t.mitad, pol), t.col), color, extra);
     }
     function pieza2(tipo, k1, k2, props) {
       const t = S.TIPOS[tipo];
@@ -158,15 +158,15 @@
     const colocadas = doc.parts.filter(p => p.rol && dis.roles.has(p.rol) && p.type !== 'fuente');
     const ordenTablero = new Map(tableros.map((t, i) => [t.id, i]));
     const puntos = new Map();
-    const agregarPunto = (sig, clave, orden) => {
+    const agregarPunto = (sig, clave, orden, paso) => {
       if (!puntos.has(sig)) puntos.set(sig, []);
-      puntos.get(sig).push(Object.assign(tiraDe(clave), { orden }));
+      puntos.get(sig).push(Object.assign(tiraDe(clave), { orden, paso }));
     };
     for (const p of colocadas) {
       const R = dis.roles.get(p.rol);
-      for (const [pin, sig] of Object.entries(R.nets)) agregarPunto(sig, clavePin(p, pin), 0);
+      for (const [pin, sig] of Object.entries(R.nets)) agregarPunto(sig, clavePin(p, pin), 0, pasoDe.get(p.id));
     }
-    for (const { led, sig } of extras) agregarPunto(sig, led.leads.a, 1);
+    for (const { led, sig } of extras) agregarPunto(sig, led.leads.a, 1, pasoDe.get(led.id));
     // Cables temporales de los pasos que aún no están armados.
     const temporales = [];
     if (hasta >= 2 && hasta < 7) temporales.push('HALT_D');
@@ -176,19 +176,19 @@
       // Puntos repetidos en la misma tira ya están unidos por la protoboard.
       const unicos = [...new Map(lista.map(x => [`${x.board}/${x.tira}`, x])).values()];
       if (sig === 'VCC' || sig === 'GND') {
-        for (const x of unicos) aRiel(x, sig === 'VCC' ? '+' : '-', colorSenal(sig));
+        for (const x of unicos) aRiel(x, sig === 'VCC' ? '+' : '-', colorSenal(sig), { sig, paso: x.paso, tipo: 'alim' });
         continue;
       }
       unicos.sort((x, y) => ordenTablero.get(x.board) - ordenTablero.get(y.board) || x.orden - y.orden || x.col - y.col);
-      for (let i = 1; i < unicos.length; i++) cable(libreEnTira(unicos[i - 1].board, unicos[i - 1].tira), libreEnTira(unicos[i].board, unicos[i].tira), colorSenal(sig));
-      if (temporales.includes(sig)) aRiel(unicos[0], '-', COLOR.OTRO), doc.wires[doc.wires.length - 1].temporal = true;
+      for (let i = 1; i < unicos.length; i++) cable(libreEnTira(unicos[i - 1].board, unicos[i - 1].tira), libreEnTira(unicos[i].board, unicos[i].tira), colorSenal(sig), { sig, paso: Math.max(unicos[i - 1].paso, unicos[i].paso), tipo: 'senal' });
+      if (temporales.includes(sig)) aRiel(unicos[0], '-', COLOR.OTRO, { sig, paso: unicos[0].paso, tipo: 'senal', temporal: true });
     }
     // Entradas sin usar a GND.
     for (const p of colocadas) {
       const def = S.CHIPS[p.type];
       if (!def) continue;
       const nets = dis.roles.get(p.rol).nets;
-      for (const pin of def.ent) if (nets[pin] === undefined) aRiel(tiraDe(clavePin(p, pin)), '-', COLOR.GND);
+      for (const pin of def.ent) if (nets[pin] === undefined) aRiel(tiraDe(clavePin(p, pin)), '-', COLOR.GND, { sig: 'GND', paso: pasoDe.get(p.id), tipo: 'alim', sinUso: true });
     }
     // Pasivos.
     const porRol = rol => colocadas.find(p => p.rol === rol);
@@ -224,17 +224,28 @@
     }
 
     // Rieles: arriba con abajo en cada protoboard, cada protoboard con la siguiente y la primera con la fuente.
-    for (const t of tableros) {
-      cable(libreEnRiel(t.id, 'T+', 1), libreEnRiel(t.id, 'B+', 1), COLOR.VCC);
-      cable(libreEnRiel(t.id, 'T-', 1), libreEnRiel(t.id, 'B-', 1), COLOR.GND);
-    }
+    // Todos llevan paso 1 (alimentación) y un número de orden para el cableado: primero la fuente, y luego,
+    // protoboard por protoboard, el cable que viene de la anterior y el que une el riel de arriba con el de abajo.
+    tableros.forEach((t, i) => {
+      cable(libreEnRiel(t.id, 'T+', 1), libreEnRiel(t.id, 'B+', 1), COLOR.VCC, { sig: 'VCC', paso: 1, tipo: 'riel', ord: 10 + i * 10 + 2 });
+      cable(libreEnRiel(t.id, 'T-', 1), libreEnRiel(t.id, 'B-', 1), COLOR.GND, { sig: 'GND', paso: 1, tipo: 'riel', ord: 10 + i * 10 + 3 });
+    });
     for (let i = 1; i < tableros.length; i++) {
       const a = tableros[i - 1].id, c = tableros[i].id;
-      cable(libreEnRiel(a, 'T+', 63), libreEnRiel(c, 'T+', 1), COLOR.VCC);
-      cable(libreEnRiel(a, 'T-', 63), libreEnRiel(c, 'T-', 1), COLOR.GND);
+      cable(libreEnRiel(a, 'T+', 63), libreEnRiel(c, 'T+', 1), COLOR.VCC, { sig: 'VCC', paso: 1, tipo: 'riel', cadena: true, ord: 10 + i * 10 });
+      cable(libreEnRiel(a, 'T-', 63), libreEnRiel(c, 'T-', 1), COLOR.GND, { sig: 'GND', paso: 1, tipo: 'riel', cadena: true, ord: 10 + i * 10 + 1 });
     }
-    cable(`${fuente.id}:+`, libreEnRiel(tableros[0].id, 'T+', 1), COLOR.VCC);
-    cable(`${fuente.id}:-`, libreEnRiel(tableros[0].id, 'T-', 1), COLOR.GND);
+    cable(`${fuente.id}:+`, libreEnRiel(tableros[0].id, 'T+', 1), COLOR.VCC, { sig: 'VCC', paso: 1, tipo: 'fuente', ord: 0 });
+    cable(`${fuente.id}:-`, libreEnRiel(tableros[0].id, 'T-', 1), COLOR.GND, { sig: 'GND', paso: 1, tipo: 'fuente', ord: 1 });
+
+    // Orden de cableado. Por módulo del plan; en cada módulo, primero la alimentación (de izquierda a derecha, protoboard
+    // por protoboard) y luego las señales, con todos los cables de una misma señal seguidos.
+    const idxTablero = k => { const x = geo.leerClave(k); return x && x.agujero ? ordenTablero.get(x.tablero) : -1; };
+    const colDe = k => { const x = geo.leerClave(k); return x && x.agujero ? x.col : 0; };
+    const grupo = { fuente: 0, riel: 0, alim: 1, senal: 2 };
+    doc.ordenCables = [...doc.wires].sort((x, y) => (x.paso - y.paso) || (grupo[x.tipo] - grupo[y.tipo]) || (
+      x.tipo === 'alim' ? (idxTablero(x.a) - idxTablero(y.a) || colDe(x.a) - colDe(y.a) || (x.sig < y.sig ? -1 : x.sig > y.sig ? 1 : 0)) :
+      x.tipo === 'senal' ? x.sig.localeCompare(y.sig, 'en', { numeric: true }) : (x.ord - y.ord))).map(w => w.id);
 
     // Secciones: qué columnas de cada protoboard son de cada módulo.
     const rango = new Map();

@@ -25,6 +25,7 @@
       this.pausado = false;
       this.oscila = false;
       this.retraso = false;
+      this.maxIter = opt.maxIter || MAX_ITER;
       this.construir();
     }
 
@@ -232,7 +233,7 @@
     asentar() {
       let it = 0;
       while (this.sucios.size) {
-        if (++it > MAX_ITER) { this.oscila = true; this.sucios.clear(); break; }
+        if (++it > this.maxIter) { this.oscila = true; this.sucios.clear(); break; }
         const lista = [...this.sucios];
         this.sucios.clear();
         const cambios = [];
@@ -249,7 +250,7 @@
         }
         for (const n of this.resolver(redes)) for (const c of this.lect[n]) this.sucios.add(c);
       }
-      if (it <= MAX_ITER) this.oscila = false;
+      if (it <= this.maxIter) this.oscila = false;
       this.iteraciones = it;
     }
 

@@ -5,7 +5,7 @@ Proyecto de una computadora de 8 bits (arquitectura de acumulador, 8 posiciones 
 | Archivo o carpeta | Contenido |
 |---|---|
 | `PLAN_CONSTRUCCION.md` | Guía de armado paso a paso: chips, pines, conexiones y pruebas de cada módulo, y los tres programas del PDF en hexadecimal |
-| `simulador/` | Simulador de protoboard estilo CRUMB: armas la computadora pieza por pieza y una guía revisa cada conexión. Abrir `simulador/index.html`; la computadora ya armada está en `simulador/computadora-armada.html`. Ver `simulador/LEEME.md` |
+| `simulador/` | Simulador de protoboard estilo CRUMB: armas la computadora pieza por pieza y una guía revisa cada conexión. Abrir `simulador/index.html`; la computadora ya armada está en `simulador/computadora-armada.html`. Incluye el modo «Cable por cable» (902 pasos) para cablear la protoboard física. Ver `simulador/LEEME.md` |
 | `GUIA_PROTEUS.md` | Guía para dibujar el circuito en Proteus (Windows), con la tabla de pines de cada chip |
 | `lista_materiales.html` | Lista de materiales y de compra (se guarda como PDF con Ctrl+P en el navegador) |
 | `fisico/` | Simulación en Logisim Evolution de ese mismo diseño, chip por chip. Ver `fisico/LEEME.md` |

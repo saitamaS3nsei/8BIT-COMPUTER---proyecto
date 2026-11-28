@@ -59,6 +59,11 @@ select, input[type=text], input[type=number] { background: var(--panel2); border
 #lienzo { display: block; }
 #aviso { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: #243048ee; border: 1px solid #3a5a96; padding: 7px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 80%; text-align: center; }
 #aviso.visible { opacity: 1; }
+#modo { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); display: none; align-items: center; gap: 14px; background: #1c3560f5; border: 1px solid var(--acento); border-radius: 10px; padding: 8px 8px 8px 16px; box-shadow: 0 6px 20px #000a; max-width: 82%; z-index: 2; }
+#modo.visible { display: flex; }
+#modo button { padding: 3px 10px; flex: none; }
+button.colocando { background: #8a5a14; border-color: var(--medio); animation: parpadeo 1.1s ease-in-out infinite; }
+@keyframes parpadeo { 50% { background: #5b3b0c; } }
 #tip { position: absolute; display: none; pointer-events: none; background: #101318f2; border: 1px solid var(--borde); border-radius: 7px; padding: 6px 9px; max-width: 340px; font-size: 12px; box-shadow: 0 6px 16px #0008; }
 #tip .v { margin-top: 3px; } #tip .g { margin-top: 3px; }
 #tip .ep { margin-top: 3px; }
@@ -115,3 +120,25 @@ table.teclas td:first-child { color: var(--acento); white-space: nowrap; }
 #estado { grid-area: estado; display: flex; align-items: center; padding: 0 12px; background: #101216; border-top: 1px solid var(--borde); color: var(--tenue); font-size: 12px; white-space: nowrap; overflow: hidden; }
 .mod { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 4px; border-left: 3px solid var(--c); background: #262b35; margin: 1px 2px 1px 0; }
 details.mapa { margin: 14px 0 4px; } details.mapa summary { cursor: pointer; color: var(--tenue); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Modo «Cable por cable» */
+.modos { display: flex; gap: 0; margin: 2px 0 8px; }
+.modos button { flex: 1; border-radius: 0; padding: 5px 6px; }
+.modos button:first-child { border-radius: 6px 0 0 6px; } .modos button:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+.cnav { position: sticky; top: -8px; z-index: 3; background: var(--panel); padding: 6px 0 8px; border-bottom: 1px solid var(--borde); margin: 0 -12px 6px; padding-left: 12px; padding-right: 12px; }
+.cnav .cfila { display: flex; align-items: center; gap: 4px; margin-top: 5px; }
+.cnav .cfila button { padding: 4px 7px; } .cnav .cfila button.grande { flex: 1; padding: 6px 4px; font-weight: 600; }
+.cnav .chk { margin-left: auto; color: var(--tenue); display: flex; align-items: center; gap: 3px; font-size: 12px; }
+.cnav input[type=number] { padding: 2px 4px; }
+.cabecera-cable { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 14px; }
+.muestra { width: 34px; height: 12px; border-radius: 6px; border: 1px solid #000a; box-shadow: inset 0 1px 0 #fff4; flex: none; }
+.extremo { display: flex; gap: 9px; align-items: flex-start; background: #232835; border: 1px solid var(--borde); border-radius: 8px; padding: 8px 10px; }
+.extremo ul { margin: 4px 0 0; padding-left: 16px; color: var(--tenue); font-size: 12px; }
+.extremo .num { flex: none; width: 20px; height: 20px; border-radius: 50%; background: #ffb340; color: #1a1d23; font-weight: 700; text-align: center; line-height: 20px; font-size: 12px; margin-top: 1px; }
+.flecha { text-align: center; color: var(--tenue); line-height: 1.1; margin: 2px 0; }
+.para { margin: 10px 0 !important; }
+.nota-paso.fin { background: #182b1f; border-color: #2a6b3d; color: #cdeed7; }
+.mono + .g { margin-left: 4px; }
+body.modo-cables #paleta { opacity: .45; pointer-events: none; }
+body.modo-cables #barra [data-acc="nuevo"], body.modo-cables #barra [data-acc="abrir"], body.modo-cables #barra [data-acc="deshacer"], body.modo-cables #barra [data-acc="rehacer"],
+body.modo-cables #barra [data-acc="protoboard"], body.modo-cables #barra [data-herr="cable"], body.modo-cables #barra [data-herr="borrar"] { opacity: .4; }

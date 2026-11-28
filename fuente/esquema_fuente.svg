@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 470" font-family="DejaVu Sans, Arial, sans-serif" font-size="12">
+  <defs>
+    <g id="diodo">
+      <polygon points="-8,-8 -8,8 8,0" fill="#fff" stroke="#000" stroke-width="1.6"/>
+      <line x1="8" y1="-8" x2="8" y2="8" stroke="#000" stroke-width="2"/>
+    </g>
+  </defs>
+  <rect width="920" height="470" fill="#fff"/>
+  <text x="20" y="26" font-size="16" font-weight="bold">Fuente de poder 5 V: transformador 12 V, puente de diodos, filtro y 7805</text>
+
+  <!-- ===== Red y transformador ===== -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <!-- fase -->
+    <line x1="30" y1="170" x2="45" y2="170"/>
+    <line x1="45" y1="170" x2="68" y2="158"/>
+    <line x1="68" y1="170" x2="82" y2="170"/>
+    <rect x="82" y="162" width="34" height="16" fill="#fff"/>
+    <line x1="116" y1="170" x2="130" y2="170"/>
+    <line x1="130" y1="170" x2="130" y2="190"/>
+    <!-- neutro -->
+    <line x1="30" y1="310" x2="130" y2="310"/>
+    <line x1="130" y1="310" x2="130" y2="290"/>
+    <!-- primario (bobina) -->
+    <path d="M130 190 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20"/>
+    <!-- nucleo -->
+    <line x1="168" y1="185" x2="168" y2="295"/>
+    <line x1="174" y1="185" x2="174" y2="295"/>
+    <!-- secundario -->
+    <path d="M212 190 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20"/>
+    <line x1="212" y1="190" x2="212" y2="170"/>
+    <line x1="212" y1="170" x2="400" y2="170"/>
+    <line x1="212" y1="270" x2="212" y2="310"/>
+    <path d="M212 310 H292 a8 8 0 0 1 16 0 H400"/>
+  </g>
+  <circle cx="30" cy="170" r="3" fill="#000"/><circle cx="30" cy="310" r="3" fill="#000"/>
+  <text x="14" y="128">Red 127 V~ 60 Hz</text>
+  <text x="38" y="190" font-size="11">SW1</text>
+  <text x="86" y="158" font-size="11">F1 0.5 A</text>
+  <text x="14" y="330" font-size="11">N (neutro)</text>
+  <text x="120" y="345" font-size="12" font-weight="bold">T1</text>
+  <text x="95" y="360" font-size="11">127 V : 12 V, 24-36 VA</text>
+  <text x="236" y="162" font-size="11">12 V~</text>
+
+  <!-- ===== Puente de diodos ===== -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="400" y1="170" x2="470" y2="240"/>
+    <line x1="400" y1="310" x2="470" y2="240"/>
+    <line x1="330" y1="240" x2="400" y2="170"/>
+    <line x1="330" y1="240" x2="400" y2="310"/>
+  </g>
+  <use href="#diodo" transform="translate(435,205) rotate(45) scale(1.2)"/>
+  <use href="#diodo" transform="translate(435,275) rotate(-45) scale(1.2)"/>
+  <use href="#diodo" transform="translate(365,205) rotate(-45) scale(1.2)"/>
+  <use href="#diodo" transform="translate(365,275) rotate(45) scale(1.2)"/>
+  <text x="446" y="196" font-size="11">D1</text>
+  <text x="446" y="296" font-size="11">D2</text>
+  <text x="340" y="196" font-size="11">D3</text>
+  <text x="340" y="296" font-size="11">D4</text>
+  <text x="310" y="388" font-size="11" fill="#555">4 x 1N5401 (o puente de 4 A)</text>
+  <text x="474" y="232" font-size="12" font-weight="bold">+</text>
+  <text x="312" y="232" font-size="12" font-weight="bold">&#8722;</text>
+  <circle cx="470" cy="240" r="3" fill="#000"/><circle cx="330" cy="240" r="3" fill="#000"/>
+
+  <!-- ===== Riel positivo ===== -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="470" y1="240" x2="620" y2="240"/>
+  </g>
+  <!-- el terminal "-" baja hasta la linea de tierra y=400 por el costado izquierdo del puente -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="330" y1="240" x2="300" y2="240"/>
+    <line x1="300" y1="240" x2="300" y2="400"/>
+    <line x1="300" y1="400" x2="890" y2="400"/>
+  </g>
+
+  <!-- C1 electrolitico -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="540" y1="240" x2="540" y2="312"/>
+    <line x1="526" y1="312" x2="554" y2="312"/>
+    <path d="M526 326 Q540 318 554 326"/>
+    <line x1="540" y1="324" x2="540" y2="400"/>
+  </g>
+  <circle cx="540" cy="240" r="3" fill="#000"/><circle cx="540" cy="400" r="3" fill="#000"/>
+  <text x="530" y="344" font-size="11" text-anchor="end">C1</text>
+  <text x="530" y="358" font-size="11" text-anchor="end">4700 &#181;F</text><text x="530" y="371" font-size="11" text-anchor="end">25 V</text>
+  <text x="514" y="308" font-size="12" font-weight="bold">+</text>
+
+  <!-- C2 ceramico entrada -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="590" y1="240" x2="590" y2="320"/>
+    <line x1="578" y1="320" x2="602" y2="320"/>
+    <line x1="578" y1="328" x2="602" y2="328"/>
+    <line x1="590" y1="328" x2="590" y2="400"/>
+  </g>
+  <circle cx="590" cy="240" r="3" fill="#000"/><circle cx="590" cy="400" r="3" fill="#000"/>
+  <text x="602" y="352" font-size="11">C2 330 nF</text>
+
+  <!-- ===== 7805 ===== -->
+  <rect x="620" y="215" width="100" height="60" fill="#f4f4f4" stroke="#000" stroke-width="1.8"/>
+  <text x="670" y="243" text-anchor="middle" font-weight="bold" font-size="14">7805</text>
+  <text x="670" y="261" text-anchor="middle" font-size="10">U1 (TO-220)</text>
+  <text x="626" y="235" font-size="10">1 IN</text>
+  <text x="690" y="235" font-size="10">3 OUT</text>
+  <text x="652" y="289" font-size="10">2 GND</text>
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="670" y1="275" x2="670" y2="400"/>
+    <line x1="720" y1="240" x2="890" y2="240"/>
+  </g>
+  <circle cx="670" cy="400" r="3" fill="#000"/>
+  <text x="682" y="320" font-size="11" fill="#a00">Disipador</text>
+  <text x="682" y="334" font-size="11" fill="#a00">&#8804; 3 &#176;C/W</text>
+
+  <!-- D5 proteccion: de OUT hacia IN (catodo en IN) -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="740" y1="240" x2="740" y2="170"/>
+    <line x1="740" y1="170" x2="600" y2="170"/>
+    <line x1="600" y1="170" x2="600" y2="240"/>
+  </g>
+  <circle cx="740" cy="240" r="3" fill="#000"/><circle cx="600" cy="240" r="3" fill="#000"/>
+  <use href="#diodo" transform="translate(670,170) rotate(180) scale(1.2)"/>
+  <text x="652" y="158" font-size="11">D5 1N4001</text>
+
+  <!-- C3 ceramico salida -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="770" y1="240" x2="770" y2="320"/>
+    <line x1="758" y1="320" x2="782" y2="320"/>
+    <line x1="758" y1="328" x2="782" y2="328"/>
+    <line x1="770" y1="328" x2="770" y2="400"/>
+  </g>
+  <circle cx="770" cy="240" r="3" fill="#000"/><circle cx="770" cy="400" r="3" fill="#000"/>
+  <text x="742" y="352" font-size="11">C3 100 nF</text>
+
+  <!-- C4 electrolitico salida -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="820" y1="240" x2="820" y2="312"/>
+    <line x1="806" y1="312" x2="834" y2="312"/>
+    <path d="M806 326 Q820 318 834 326"/>
+    <line x1="820" y1="324" x2="820" y2="400"/>
+  </g>
+  <circle cx="820" cy="240" r="3" fill="#000"/><circle cx="820" cy="400" r="3" fill="#000"/>
+  <text x="794" y="308" font-size="12" font-weight="bold">+</text>
+  <text x="852" y="388" font-size="11" text-anchor="end">C4 470 &#181;F</text>
+
+  <!-- LED indicador -->
+  <g fill="none" stroke="#000" stroke-width="1.6">
+    <line x1="866" y1="240" x2="866" y2="270"/>
+    <rect x="858" y="270" width="16" height="36" fill="#fff"/>
+    <line x1="866" y1="306" x2="866" y2="330"/>
+    <line x1="866" y1="378" x2="866" y2="400"/>
+  </g>
+  <circle cx="866" cy="240" r="3" fill="#000"/><circle cx="866" cy="400" r="3" fill="#000"/>
+  <text x="878" y="292" font-size="11">R1</text>
+  <text x="878" y="305" font-size="11">1 k&#937;</text>
+  <use href="#diodo" transform="translate(866,354) rotate(90) scale(1.2)"/>
+  <text x="878" y="358" font-size="11">LED1</text>
+
+  <!-- Salida -->
+  <circle cx="890" cy="240" r="5" fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <circle cx="890" cy="400" r="5" fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <text x="858" y="226" font-weight="bold" fill="#a00">+5 V</text>
+  <text x="858" y="426" font-weight="bold">GND</text>
+  <line x1="720" y1="240" x2="890" y2="240" stroke="#000" stroke-width="1.6"/>
+
+  <text x="20" y="440" font-size="11" fill="#555">Fase y neutro solo llegan a SW1, F1 y el primario de T1: todo eso va dentro de una caja cerrada.</text>
+  <text x="20" y="456" font-size="11" fill="#555">En la protoboard solo hay corriente continua de 5 V.</text>
+</svg>

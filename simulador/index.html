@@ -52,6 +52,7 @@
 <main id="escena">
   <canvas id="lienzo"></canvas>
   <div id="aviso"></div>
+  <div id="modo"><span id="modoTexto"></span><button id="modoCancelar" title="Cancelar (Esc)">Cancelar (Esc)</button></div>
   <div id="tip"></div>
 </main>
 <aside id="lateral">
@@ -80,6 +81,7 @@
 <script src="js/ui/dibujo.js"></script>
 <script src="js/ui/paneles.js"></script>
 <script src="js/ui/app.js"></script>
-<script>window.app = new SIM8.UI.App();</script>
+<script src="js/ui/modo-cables.js"></script>
+<script>window.app = new SIM8.UI.App(); app.restaurarModoCables();</script>
 </body>
 </html>

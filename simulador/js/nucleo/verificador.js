@@ -210,6 +210,9 @@
     return { porRol, etapa, estadoPin, faltan, cortos, temporales, entradasLibres, duplicados, pasos: resumenPasos, senal, usadas };
   };
 
+  // Resultado vacío, para el modo «Cable por cable»: el circuito está a medias a propósito y no hay nada que comparar.
+  S.verifVacia = () => ({ porRol: new Map(), etapa: 1, estadoPin: new Map(), faltan: [], cortos: [], temporales: [], entradasLibres: [], duplicados: [], pasos: [], senal: new Map(), usadas: new Set() });
+
   // Pieza con la función indicada (o null).
   S.parteDeRol = (doc, rol) => doc.parts.find(p => (p.type === 'fuente' ? '1:FUENTE' : p.rol) === rol) || null;
 })(globalThis);

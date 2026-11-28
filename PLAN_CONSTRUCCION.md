@@ -103,7 +103,10 @@ El opcode ocupa los bits IR7 a IR4 y el operando los bits IR3 a IR0. IR7 (bit 3 
 - Pulsador SPDT: el común a GND. El contacto A es el **normalmente cerrado** y el B el **normalmente abierto**.
 - Contacto A del pulsador al pin 1 y contacto B al pin 4. Cada uno con una resistencia de 10 kΩ a +5 V.
 - Pin 3 al pin 5, y pin 6 al pin 2.
-- La salida STEP es el pin 3.
+- La salida STEP es el **pin 6** (el mismo punto que el pin 2). El pin 3 es la salida invertida y no se usa.
+- En reposo STEP vale 0. Al **pulsar** (o al pasar el interruptor al lado B) sube a 1: ese flanco de subida es el pulso de reloj.
+
+**Si no consigues el pulsador conmutado (SPDT):** usa un **interruptor deslizante de 3 patas**, el mismo tipo de AUTO y PROG. Se cablea igual: la pata del medio (común) a GND, un extremo a A (pin 1 del 74LS00, el reposo) y el otro a B (pin 4, el activo). Pasarlo de A a B da un pulso; devolverlo a A no da ninguno. Para dar otro pulso, vuelve a pasarlo a B. Lo probé en la simulación con el programa 5 + 3 y funciona igual.
 
 **Reset:** pulsador de dos patas entre GND y la línea /RESET, con 10 kΩ a +5 V.
 
@@ -214,7 +217,8 @@ Para probar solo el PC, pon ENP/ENT a +5 V con un interruptor, /LOAD a +5 V, y l
 
 **Escritura manual (modo PROG):**
 - `WE_PULSE = (PROG · BTN_WRITE) + (MEM_WE · /SYSCLK)` (en modo PROG la fase queda en T0, así que MEM_WE vale 0)
-- BTN_WRITE sale de un latch SR de 74LS00 con el pulsador SPDT, igual que el paso a paso.
+- BTN_WRITE sale del **pin 6** de un latch SR de 74LS00 con el pulsador SPDT, cableado igual que el paso a paso (misma alternativa con interruptor deslizante: la memoria se escribe al devolverlo a A).
+- Para escribir un cajón con el deslizante: pásalo a B y vuelve a A. El dato se guarda al regresar a A.
 - Con PROG = 1: el 245 de los interruptores se habilita (/OE = /PROG) y la memoria escribe cuando pulsas.
 - `/RESET_TOTAL = /RESET · /PROG`. Así, en modo PROG el sistema queda en reset (PC a 0, fase T0, HLT apagado).
 

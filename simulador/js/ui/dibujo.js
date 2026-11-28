@@ -474,7 +474,8 @@
         if (g.w.id === app.arrastrandoCable) continue;
         if (g.x1 < v.x0 || g.x0 > v.x1 || g.y1 < v.y0 || g.y0 > v.y1) continue;
         const sel = app.sel && app.sel.tipo === 'cable' && app.sel.id === g.w.id;
-        if (sel || (foco && g.na >= 0 && foco.has(red[g.na]))) { destacados.push([g, sel]); continue; }
+        const guia = g.w.id === app.cableGuiaId;
+        if (sel || guia || (foco && g.na >= 0 && foco.has(red[g.na]))) { destacados.push([g, sel, guia]); continue; }
         const color = g.w.color || '#2f6fd6';
         if (!lote.has(color)) lote.set(color, []);
         lote.get(color).push(g);
@@ -501,11 +502,38 @@
         }
       }
       ctx.globalAlpha = 1;
-      for (const [g, sel] of destacados) this.cable(g.c, g.w.color || '#2f6fd6', true, g.w.temporal);
+      for (const [g, sel, guia] of destacados) {
+        if (guia) this.halo(g.c);
+        this.cable(g.c, g.w.color || '#2f6fd6', !guia, g.w.temporal);
+        if (guia) this.anillos(g.c);
+      }
       if (app.cableNuevo) {
         const a = S.posClave(app.doc, app.cableNuevo), b = app.raton;
         if (a && b) { ctx.globalAlpha = 0.75; this.cable(UI.curvaCable(a, b), app.colorCable, false); ctx.globalAlpha = 1; }
       }
+    }
+    // Cable del paso actual del modo «Cable por cable»: halo ámbar y un anillo numerado en cada extremo.
+    halo(c) {
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.lineCap = 'round'; ctx.globalAlpha = 0.6; ctx.strokeStyle = '#ffb340'; ctx.lineWidth = 9;
+      ctx.beginPath(); ctx.moveTo(c.a.x, c.a.y);
+      if (c.recto) ctx.lineTo(c.b.x, c.b.y); else ctx.bezierCurveTo(c.c1.x, c.c1.y, c.c2.x, c.c2.y, c.b.x, c.b.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+    anillos(c) {
+      const ctx = this.ctx, z = this.app.cam.z, r = Math.max(6, 11 / z), br = r * 0.62;
+      ctx.save();
+      ctx.lineWidth = Math.max(1.6, 2.2 / z); ctx.strokeStyle = '#ffb340';
+      [c.a, c.b].forEach((q, i) => {
+        ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, 7); ctx.stroke();
+        const bx = q.x - r * 1.05, by = q.y - r * 1.05;
+        ctx.fillStyle = '#ffb340'; ctx.beginPath(); ctx.arc(bx, by, br, 0, 7); ctx.fill();
+        ctx.fillStyle = '#1a1d23'; ctx.font = `bold ${br * 1.4}px system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(i + 1), bx, by + br * 0.06);
+      });
+      ctx.restore();
     }
     cable(c, color, resaltado, temporal) {
       const ctx = this.ctx;
@@ -521,7 +549,7 @@
 
     faltantes() {
       const app = this.app;
-      if (!app.verFaltantes || !app.verif) return;
+      if (!app.verFaltantes || !app.verif || app.modoCables) return;
       const ctx = this.ctx, doc = app.doc, z = app.cam.z;
       const paso = app.pasoGuia;
       const lista = app.verif.faltan.filter(f => paso >= 8 || S.diseno.roles.get(f.a.rol).paso <= paso || S.diseno.roles.get(f.b.rol).paso <= paso);

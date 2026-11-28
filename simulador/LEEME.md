@@ -27,7 +27,7 @@ Para ver la computadora ya armada, abre `simulador/computadora-armada.html`. Cad
 
 La pestaña **Guía de armado** sigue los 8 pasos del plan. En cada paso muestra:
 
-- Las piezas que lleva. Con **Colocar**, la pieza se pone con su función asignada para que la guía la revise.
+- Las piezas que lleva. **Colocar** no pone la pieza sola: activa el modo colocar. La pieza aparece como una sombra sobre la protoboard y sigue al ratón, el botón cambia a «Colocando…» y sale un letrero abajo con la instrucción y un botón «Cancelar» (también sirve Esc). Haces clic en la protoboard y la pieza queda puesta con su función asignada, para que la guía la revise.
 - Cuántos pines de cada chip están bien conectados.
 - Las resistencias, condensadores y LEDs que faltan, con un botón para colocarlos.
 - Las **conexiones que faltan**, también dibujadas en la protoboard como líneas naranjas punteadas. Un clic en la lista te lleva a esa conexión.
@@ -38,6 +38,31 @@ La pestaña **Guía de armado** sigue los 8 pasos del plan. En cada paso muestra
 En el paso 8, **Cargar** escribe un programa en la memoria moviendo los interruptores DIP y el pulsador ESCRIBIR, igual que a mano. **Ejecutar** pone PROG en 0 y AUTO en 1. El panel muestra el estado de la CPU: PC, fase, IR, A, B, OUT, banderas y memoria.
 
 Una pieza que colocas desde la paleta toma la siguiente función libre del paso que tengas abierto en la guía. Puedes cambiarla en el panel Pieza.
+
+## Modo «Cable por cable»
+
+En la parte de arriba de la guía hay dos modos: **Por pasos (8)**, el de siempre, y **Cable por cable**, pensado para ir cableando la protoboard física con el simulador al lado.
+
+Son **902 pasos**: 1 de piezas y 901 de cables.
+
+| Pasos | Qué se hace | Cables |
+|---|---|---|
+| 1 | Poner las 220 piezas en las 12 protoboards, **sin cables** | 0 |
+| 2 a 49 | Alimentación: fuente y rieles | 48 |
+| 50 a 116 | Reloj y reset | 67 |
+| 117 a 122 | Contador de programa | 6 |
+| 123 a 287 | Registros y bus | 165 |
+| 288 a 499 | Memoria | 212 |
+| 500 a 783 | ALU y banderas | 284 |
+| 784 a 902 | Unidad de control | 119 |
+
+- **Paso 1:** muestra todas las piezas ya puestas, un resumen de cuántas hay de cada tipo y, por protoboard, dónde va cada una (columnas, pin 1 y, en los LEDs, ánodo y cátodo).
+- **Cada cable:** el simulador lo dibuja con un halo ámbar y un anillo numerado (1 y 2) en cada extremo. El panel dice su color, su señal, en qué agujero empieza y termina, a qué pines de qué chips llega, la distancia entre agujeros y un largo de corte aproximado.
+- **Orden:** por módulo del plan; dentro de cada uno, primero la alimentación de cada chip (de izquierda a derecha) y luego las señales, con todos los cables de una misma señal seguidos. Al final de cada módulo muestra su prueba.
+- **Moverse:** botones Anterior y Siguiente, flechas ← → del teclado (con Shift de 10 en 10), Re Pág y Av Pág, Inicio y Fin, un cuadro «Ir al paso» y una lista para saltar a cada módulo. La cámara sigue al cable; se puede desactivar.
+- **Es de solo lectura.** Tu armado se guarda aparte y vuelve intacto al pulsar «Por pasos». Sí puedes usar interruptores, pulsadores y la fuente. Si recargas la página, sigues en el mismo paso.
+
+Los largos de corte son aproximados. Los cables entre protoboards dependen de cómo las acomodes.
 
 ## Qué simula y qué no
 

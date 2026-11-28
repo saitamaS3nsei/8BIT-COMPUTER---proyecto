@@ -126,5 +126,32 @@ console.log(`     Tiempo de las 13 ejecuciones: ${((Date.now() - t0) / 1000).toF
   ok(pulsos > 5, `Sin antirrebote, 5 pulsaciones cuentan ${pulsos} pulsos (rebote simulado)`);
 }
 
+// 6. Orden de cableado del modo «Cable por cable».
+{
+  const ref = S.autoArmar(8);
+  const porId = new Map(ref.wires.map(w => [w.id, w]));
+  const cables = ref.ordenCables.map(id => porId.get(id));
+  ok(ref.ordenCables.length === ref.wires.length && new Set(ref.ordenCables).size === ref.wires.length && cables.every(Boolean),
+    `Orden de cableado: ${ref.ordenCables.length} cables, cada uno una sola vez (con el paso de las piezas son ${ref.ordenCables.length + 1} pasos)`);
+  ok(ref.wires.every(w => w.paso >= 1 && w.paso <= 7 && w.sig && ['fuente', 'riel', 'alim', 'senal'].includes(w.tipo)), 'Cada cable trae módulo, señal y tipo');
+  ok(cables.every((w, i) => i === 0 || cables[i - 1].paso <= w.paso), 'El orden va por módulo del plan, de menor a mayor');
+  const cuenta = {};
+  for (const w of cables) cuenta[w.paso] = (cuenta[w.paso] || 0) + 1;
+  console.log('     Cables por módulo:', Object.entries(cuenta).map(([k, v]) => `paso ${k}: ${v}`).join(' · '));
+  ok(cables.slice(0, 2).every(w => w.tipo === 'fuente'), 'Los dos primeros cables salen de la fuente');
+  let completo = true, detalle = '';
+  for (let N = 2; N <= 7; N++) {
+    const d = JSON.parse(JSON.stringify(ref));
+    d.wires = cables.filter(w => w.paso <= N);
+    const m = new S.Motor(d, { semilla: 5 });
+    const chips = d.parts.filter(q => q.rol && S.CHIPS[q.type] && S.diseno.roles.get(q.rol).paso <= N);
+    const sinV = chips.filter(q => !m.comp(q.id).alimentado);
+    const v = S.verificar(d, m);
+    if (sinV.length || v.cortos.length) { completo = false; detalle += ` paso ${N}: ${sinV.length} sin alimentar, ${v.cortos.length} cortos;`; }
+    if (N === 2) { const c555 = m.comps.find(c => c.def.reloj); if (!c555 || !c555.tiempos.ok) { completo = false; detalle += ' el 555 no oscila tras el paso 2;'; } }
+  }
+  ok(completo, `Al terminar cada módulo (2 a 7), sus chips y los anteriores están alimentados y no hay cortos${detalle}`);
+}
+
 console.log(fallos ? `\n${fallos} prueba(s) fallaron` : '\nTodas las pruebas pasan');
 process.exitCode = fallos ? 1 : 0;

@@ -133,10 +133,21 @@
       const d = this.app.motor.diagnostico();
       const err = d.filter(x => x.nivel === 'error').length, av = d.filter(x => x.nivel === 'aviso').length;
       const v = this.app.verif;
-      const n = err + av + v.cortos.length;
+      // En el modo «Cable por cable» el circuito está a medias a propósito: no se muestra el conteo.
+      const n = this.app.modoCables ? 0 : err + av + v.cortos.length;
       $('nDiag').textContent = n ? String(n) : '';
       $('nDiag').className = err || v.cortos.length ? 'err' : n ? 'av' : '';
       this.ultDiag = d;
+    }
+
+    // Marca el botón «Colocar» de la pieza que se está colocando.
+    marcarColocar() {
+      const rol = this.app.colocar && this.app.colocar.rol;
+      document.querySelectorAll('[data-colocar]').forEach(b => {
+        const on = !!rol && b.dataset.colocar === rol;
+        b.classList.toggle('colocando', on);
+        b.textContent = on ? 'Colocando…' : 'Colocar';
+      });
     }
 
     // ------------------------------------------------------------------ Guía
@@ -214,6 +225,7 @@
       h += `<div class="acciones"><button data-sol="${n}">Ver solución hasta el paso ${n}</button><button data-acc2="ajustar">Ajustar vista</button></div>`;
       h += `<p class="g">«Ver solución» arma todo automáticamente (reemplaza tu armado; Ctrl+Z lo recupera). Sirve para comparar con lo tuyo.</p>`;
       $('pest-guia').innerHTML = h;
+      this.marcarColocar();
     }
     // Qué módulo lleva cada protoboard (según las secciones del armado, o según las piezas con función).
     contenidoTablero(b) {
@@ -387,6 +399,7 @@
     // ------------------------------------------------------------------ Problemas
     diag() {
       const app = this.app, el = $('pest-diag');
+      if (app.modoCables) { el.innerHTML = '<h2>Problemas</h2><p class="g">En el modo «Cable por cable» el circuito está a medias a propósito, así que no se muestran avisos. Vuelve a «Por pasos» para ver los problemas de tu armado.</p>'; return; }
       const d = this.ultDiag || app.motor.diagnostico();
       const v = app.verif;
       let h = '<h2>Problemas eléctricos</h2>';

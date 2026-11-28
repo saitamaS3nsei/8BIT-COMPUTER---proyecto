@@ -42,6 +42,7 @@
       this.cargarInicial();
       this.paneles = new UI.Paneles(this);
       this.eventos();
+      document.getElementById('modoCancelar').addEventListener('click', () => this.cancelar());
       this.redimensionar();
       if (!this.camGuardada) this.ajustarVista();
       this.paneles.actualizar();
@@ -64,6 +65,7 @@
           doc = g.doc;
           if (ARMADA && doc.armado !== S.VERSION_ARMADO) throw new Error('armado anterior');
           this.pasoGuia = g.pasoGuia || 1;
+          this.cablesGuardado = g.cables && g.cables.paso ? g.cables.paso : null;
           if (g.cam) { this.cam = g.cam; this.camGuardada = true; }
         }
       } catch (e) { doc = null; }
@@ -72,13 +74,13 @@
       try {
         this.normalizar(this.doc);
         this.motor = new S.Motor(this.doc, { semilla: Date.now() & 0xffff });
-        this.verif = S.verificar(this.doc, this.motor);
+        this.verif = this.calcularVerif();
       } catch (e) {
         // Un guardado dañado no debe impedir abrir el simulador.
         console.warn('Guardado local inválido, se empieza de cero', e);
         this.doc = S.docInicial();
         this.motor = new S.Motor(this.doc, { semilla: Date.now() & 0xffff });
-        this.verif = S.verificar(this.doc, this.motor);
+        this.verif = this.calcularVerif();
       }
     }
     normalizar(doc) {
@@ -115,12 +117,14 @@
       this._geoC = out; this._geoCDoc = this.doc; this._geoCMotor = this.motor.N;
       return out;
     }
+    // El modo «Cable por cable» no compara contra el diseño (tarda y no aplica), así que no verifica.
+    calcularVerif() { return this.modoCables ? S.verifVacia() : S.verificar(this.doc, this.motor); }
     aplicar() {
       this._ocup = null;
       this.invalidarGeometria();
       this.motor.doc = this.doc;
       this.motor.construir();
-      this.verif = S.verificar(this.doc, this.motor);
+      this.verif = this.calcularVerif();
       this.guardarLocal();
       this.sucio = true;
       if (this.sel && this.sel.tipo === 'pieza' && !this.doc.parts.some(p => p.id === this.sel.id)) this.sel = null;
@@ -128,7 +132,14 @@
       if (this.sel && this.sel.tipo === 'tablero' && !this.doc.boards.some(b => b.id === this.sel.id)) this.sel = null;
       this.paneles.actualizar();
     }
+    // En el modo «Cable por cable» el armado es una referencia de solo lectura: solo se pueden usar los interruptores.
+    soloLectura() {
+      if (!this.modoCables) return false;
+      this.aviso('Estás en el modo «Cable por cable»: el armado es de solo lectura. Vuelve a «Por pasos» para editar');
+      return true;
+    }
     editar(fn) {
+      if (this.soloLectura()) return false;
       const antes = JSON.stringify(this.doc);
       fn(this.doc);
       if (JSON.stringify(this.doc) === antes) return false;
@@ -139,6 +150,7 @@
       return true;
     }
     reemplazarDoc(nuevo) {
+      if (this.soloLectura()) return;
       this.historia.push(JSON.stringify(this.doc));
       this.rehacerPila = [];
       this.doc = nuevo;
@@ -151,18 +163,20 @@
     cambiarEstado(fn) {
       fn(this.doc);
       this.motor.enlazar();
-      this.verif = S.verificar(this.doc, this.motor);
+      this.verif = this.calcularVerif();
       this.guardarLocal();
       this.sucio = true;
       this.paneles.refrescarVivo(true);
     }
     deshacer() {
+      if (this.soloLectura()) return;
       if (!this.historia.length) return this.aviso('No hay nada que deshacer');
       this.rehacerPila.push(JSON.stringify(this.doc));
       this.doc = JSON.parse(this.historia.pop());
       this.aplicar();
     }
     rehacer() {
+      if (this.soloLectura()) return;
       if (!this.rehacerPila.length) return this.aviso('No hay nada que rehacer');
       this.historia.push(JSON.stringify(this.doc));
       this.doc = JSON.parse(this.rehacerPila.pop());
@@ -171,11 +185,15 @@
     guardarLocal() {
       clearTimeout(this.tGuardar);
       this.tGuardar = setTimeout(() => {
-        try { localStorage.setItem(CLAVE_LS, JSON.stringify({ doc: this.doc, pasoGuia: this.pasoGuia, cam: this.cam })); } catch (e) { /* almacenamiento lleno o bloqueado */ }
+        try {
+          // En el modo «Cable por cable» se guarda el armado propio (no la referencia) y el paso en que vas.
+          const mc = this.modoCables;
+          localStorage.setItem(CLAVE_LS, JSON.stringify({ doc: mc ? mc.docUsuario : this.doc, pasoGuia: this.pasoGuia, cam: mc ? mc.cam : this.cam, cables: mc ? { paso: mc.paso } : null }));
+        } catch (e) { /* almacenamiento lleno o bloqueado */ }
       }, 400);
     }
     descargar() {
-      const datos = JSON.stringify({ formato: 'protoboard-8bits', version: 1, doc: this.doc }, null, 1);
+      const datos = JSON.stringify({ formato: 'protoboard-8bits', version: 1, doc: this.modoCables ? this.modoCables.docUsuario : this.doc }, null, 1);
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([datos], { type: 'application/json' }));
       a.download = 'computadora-8bits-protoboard.json';
@@ -183,6 +201,7 @@
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
     abrirArchivo(archivo) {
+      if (this.soloLectura()) return;
       const r = new FileReader();
       r.onload = () => {
         try {
@@ -406,6 +425,7 @@
       return r || null;
     }
     iniciarColocacion(tipo, props = {}, rol) {
+      if (this.soloLectura()) return;
       this.cancelar();
       if (tipo === 'fuente' && this.doc.parts.some(p => p.type === 'fuente')) {
         const f = this.doc.parts.find(p => p.type === 'fuente');
@@ -416,10 +436,30 @@
       this.colocar = { tipo, props, rol: r, etapa: 0, primera: null };
       const t = S.TIPOS[tipo];
       const nombre = r ? S.diseno.roles.get(r).nombre : t.nombre;
-      if (t.cat === 'leads') this.ayuda(tipo === 'led' ? `${nombre}: haz clic en el agujero del ánodo (+), la pata larga` : `${nombre}: haz clic en el agujero de la primera pata`);
-      else if (t.cat === 'dip') this.ayuda(`${nombre}: colócalo cruzando el canal central. R lo gira 180°. Esc cancela`);
-      else this.ayuda(`${nombre}: haz clic donde quieras ponerlo. Esc cancela`);
+      if (t.cat === 'leads') this.ayuda(tipo === 'led' ? `Colocando ${nombre}: haz clic en el agujero del ánodo (+, la pata larga) y luego en el del cátodo (−)` : `Colocando ${nombre}: haz clic en el agujero de la primera pata y luego en el de la segunda`);
+      else if (t.cat === 'dip') this.ayuda(`Colocando ${nombre}: haz clic en la protoboard, cruzando el canal central. R lo gira 180°`);
+      else this.ayuda(`Colocando ${nombre}: haz clic en la protoboard donde quieras ponerlo`);
+      this.ponerFantasmaInicial();
       this.marcarHerramienta();
+    }
+    // Muestra la pieza de inmediato sobre la protoboard más cercana al centro de la vista; si no hay
+    // ninguna a la vista, lleva la cámara hasta ella. Después sigue al ratón.
+    ponerFantasmaInicial() {
+      const c = this.colocar, t = S.TIPOS[c.tipo];
+      if (t.cat === 'leads') return;
+      const centro = { x: this.cam.x + this.ancho / 2 / this.cam.z, y: this.cam.y + this.alto / 2 / this.cam.z };
+      if (t.cat === 'libre') { this.actualizarFantasma(centro); this.sucio = true; return; }
+      if (!this.doc.boards.length) return;
+      const dist = b => Math.hypot(b.x + geo.W / 2 - centro.x, b.y + geo.H / 2 - centro.y);
+      const b = [...this.doc.boards].sort((p, q) => dist(p) - dist(q))[0];
+      const vx0 = this.cam.x, vx1 = this.cam.x + this.ancho / this.cam.z, vy0 = this.cam.y, vy1 = this.cam.y + this.alto / this.cam.z;
+      const visible = this.doc.boards.some(k => k.x < vx1 && k.x + geo.W > vx0 && k.y < vy1 && k.y + geo.H > vy0);
+      if (!visible) this.centrarEn(b.x + geo.W / 2, b.y + geo.H / 2, Math.max(this.cam.z, 1.6));
+      const cx = this.cam.x + this.ancho / 2 / this.cam.z;
+      const x = Math.min(Math.max(cx, b.x + 40), b.x + geo.W - 40);
+      const y = b.y + (t.cat === 'dip' ? 105 : geo.FILA_Y.c);
+      this.actualizarFantasma({ x, y });
+      this.sucio = true;
     }
     candidato(pt) {
       const c = this.colocar, t = S.TIPOS[c.tipo];
@@ -536,6 +576,7 @@
       return null;
     }
     borrar(sel) {
+      if (this.soloLectura()) return;
       if (!sel) return;
       if (sel.tipo === 'pieza') this.editar(doc => { doc.parts = doc.parts.filter(p => p.id !== sel.id); doc.wires = doc.wires.filter(w => !w.a.startsWith(sel.id + ':') && !w.b.startsWith(sel.id + ':')); });
       else if (sel.tipo === 'cable') this.editar(doc => { doc.wires = doc.wires.filter(w => w.id !== sel.id); });
@@ -556,6 +597,7 @@
       });
     }
     agregarTablero() {
+      if (this.soloLectura()) return;
       let i = 0;
       const ocupado = (x, y) => this.doc.boards.some(b => Math.abs(b.x - x) < geo.W && Math.abs(b.y - y) < geo.H + 40);
       while (ocupado((i % 2) * 720, Math.floor(i / 2) * 270)) i++;
@@ -569,6 +611,7 @@
       this.aviso(`${nuevo.nombre} agregada. Recuerda unir sus rieles a la fuente`);
     }
     girar() {
+      if (this.modoCables) return this.soloLectura();
       const s = this.sel;
       if (this.colocar) { this.colocar.flip = !this.colocar.flip; if (this.raton) this.actualizarFantasma(this.raton); this.sucio = true; return; }
       if (!s || s.tipo !== 'pieza') return;
@@ -590,6 +633,7 @@
       });
     }
     cargarSolucion(n) {
+      if (this.soloLectura()) return;
       const texto = n >= 8 ? 'la computadora completa' : `la solución de los pasos 1 a ${n}`;
       if (this.doc.parts.length > 1 && !confirm(`Esto reemplaza tu armado por ${texto}. Tu trabajo actual se puede recuperar con Deshacer (Ctrl+Z). ¿Continuar?`)) return;
       this.reemplazarDoc(S.autoArmar(n));
@@ -641,7 +685,7 @@
           if (s) { a.prox = ahora + s * 2000; break; }
         } catch (e) { this.aviso(e.message); this.acciones = null; return; }
       }
-      this.verif = S.verificar(this.doc, this.motor);
+      this.verif = this.calcularVerif();
       this.sucio = true;
       this.guardarLocal();
       if (a.i >= a.lista.length) {
@@ -658,7 +702,13 @@
       clearTimeout(this.tAviso);
       this.tAviso = setTimeout(() => el.classList.remove('visible'), 3200);
     }
-    ayuda(txt) { document.getElementById('estadoTexto').textContent = txt; this.textoAyuda = txt; }
+    ayuda(txt) {
+      document.getElementById('estadoTexto').textContent = txt; this.textoAyuda = txt;
+      // Mientras hay una acción a medias (colocar una pieza o tirar un cable) la instrucción se muestra bien visible.
+      const activo = !!(this.colocar || this.cableNuevo) && !!txt;
+      document.getElementById('modo').classList.toggle('visible', activo);
+      if (activo) document.getElementById('modoTexto').textContent = txt;
+    }
     cancelar() {
       this.colocar = null; this.fantasma = null; this.cableNuevo = null;
       this.ayuda('');
@@ -666,6 +716,7 @@
       this.sucio = true;
     }
     cambiarHerramienta(h) {
+      if (this.modoCables && (h === 'cable' || h === 'borrar')) { this.soloLectura(); h = 'seleccionar'; }
       this.cancelar();
       this.herr = h;
       if (h !== 'punta') this.redFijada = -1;
@@ -680,6 +731,7 @@
     }
     marcarHerramienta() {
       document.querySelectorAll('[data-herr]').forEach(b => b.classList.toggle('activa', b.dataset.herr === this.herr && !this.colocar));
+      if (this.paneles) this.paneles.marcarColocar();
       this.cv.style.cursor = this.colocar ? 'copy' : this.herr === 'cable' ? 'crosshair' : this.herr === 'punta' ? 'help' : this.herr === 'borrar' ? 'not-allowed' : 'default';
     }
 
@@ -749,7 +801,7 @@
       if (t.tipo === 'pestana') {
         const b = this.doc.boards.find(x => x.id === t.id);
         this.sel = { tipo: 'tablero', id: t.id };
-        this.arrastre = { tipo: 'tablero', id: t.id, sx, sy, bx: b.x, by: b.y, antes: JSON.stringify(this.doc), movido: false };
+        this.arrastre = this.modoCables ? null : { tipo: 'tablero', id: t.id, sx, sy, bx: b.x, by: b.y, antes: JSON.stringify(this.doc), movido: false };
         this.paneles.mostrar('props'); this.paneles.actualizar(); this.sucio = true;
         return;
       }
@@ -891,6 +943,7 @@
       if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); return this.rehacer(); }
       if ((e.ctrlKey || e.metaKey) && k === 's') { e.preventDefault(); return this.descargar(); }
       if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (this.modoCables && this.teclaCables(e, k)) return;
       if (k === 'escape') { this.cancelar(); this.sel = null; this.redFijada = -1; this.pinFoco = null; this.paneles.actualizar(); return; }
       if (k === 'delete' || k === 'backspace') { e.preventDefault(); return this.borrar(this.sel); }
       if (k === 'r') return this.girar();

@@ -124,6 +124,22 @@ try {
   const bColocar = await evaluar(`(() => { const b = document.querySelector('[data-colocar="3:74LS161 PC"]'); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
   ok(!!bColocar, 'La guía del paso 3 ofrece «Colocar» para el 74LS161 PC');
   await clic(bColocar.x, bColocar.y);
+  const sel = '[data-colocar="3:74LS161 PC"]';
+  const fb = await evaluar(`({ sombra: !!(app.fantasma && app.fantasma.parte), letrero: document.getElementById('modo').classList.contains('visible'), texto: document.getElementById('modoTexto').textContent, boton: document.querySelector('${sel}').textContent })`);
+  ok(fb.sombra && fb.letrero && fb.boton === 'Colocando…', `Al pulsar «Colocar» se ve que pasó algo: sombra de la pieza, letrero («${fb.texto.slice(0, 48)}…») y botón «${fb.boton}»`);
+  await captura('2d-colocando.png');
+  const cancelar = await evaluar(`(() => { const r = document.getElementById('modoCancelar').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+  await clic(cancelar.x, cancelar.y);
+  const fc = await evaluar(`({ colocar: app.colocar, letrero: document.getElementById('modo').classList.contains('visible'), boton: document.querySelector('${sel}').textContent })`);
+  ok(fc.colocar === null && !fc.letrero && fc.boton === 'Colocar', 'El botón «Cancelar» del letrero sale del modo colocar y el botón vuelve a «Colocar»');
+  // Con la protoboard fuera de la vista, «Colocar» lleva la cámara hasta ella.
+  await evaluar(`app.centrarEn(5000, 5000, 1.2)`);
+  await dormir(100);
+  await clic(bColocar.x, bColocar.y);
+  const lejos = await evaluar(`(() => { const b = app.doc.boards[0]; const vx1 = app.cam.x + app.ancho / app.cam.z, vy1 = app.cam.y + app.alto / app.cam.z; return { visible: b.x < vx1 && b.x + 670 > app.cam.x && b.y < vy1 && b.y + 210 > app.cam.y, sombra: !!(app.fantasma && app.fantasma.parte) }; })()`);
+  ok(lejos.visible && lejos.sombra, 'Si la protoboard no se ve, «Colocar» lleva la vista hasta ella y muestra la sombra');
+  await evaluar(`app.encuadrar(-260, -20, 700, 230, 2.4)`);
+  await dormir(150);
   let d = await enPantalla(25 + 33 * 10, 105);
   await cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: d.x, y: d.y }); await dormir(60);
   await clic(d.x, d.y);
@@ -285,6 +301,68 @@ try {
   ok(rot.nombres.every(n => / · /.test(n)) && rot.filas === rot.nombres.length && rot.secciones > 12, `Cada protoboard dice qué módulo lleva (${rot.nombres[0]} … ${rot.nombres[11]}) y el mapa de la guía las lista`);
   await dormir(400);
   await captura('3b-protoboard-4-rotulada.png');
+
+  // Modo «Cable por cable».
+  const tecla = async (key, shift = false) => {
+    const mod = shift ? 8 : 0, vk = { ArrowRight: 39, ArrowLeft: 37, End: 35, Home: 36 }[key];
+    await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key, code: key, windowsVirtualKeyCode: vk, modifiers: mod });
+    await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key, code: key, windowsVirtualKeyCode: vk, modifiers: mod });
+    await dormir(120);
+  };
+  const clicBoton = async sel => {
+    const r = await evaluar(`(() => { const b = document.querySelector('${sel}'); if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+    if (!r) throw new Error(`No hay botón ${sel}`);
+    await clic(r.x, r.y); await dormir(250);
+  };
+  const propio = await evaluar(`JSON.stringify(app.doc)`);
+  await evaluar(`app.paneles.mostrar('guia')`);
+  await clicBoton('[data-modo="cables"]');
+  const m1 = await evaluar(`({ modo: !!app.modoCables, paso: app.modoCables && app.modoCables.paso, cables: app.doc.wires.length, piezas: app.doc.parts.length, total: app.modoCables && app.modoCables.cables.length, clase: document.body.classList.contains('modo-cables'), titulo: document.querySelector('#pest-guia h2').textContent })`);
+  ok(m1.modo && m1.paso === 1 && m1.cables === 0 && m1.piezas === 221 && m1.clase, `«Cable por cable» abre en el paso 1: ${m1.piezas} piezas y ${m1.cables} cables («${m1.titulo}»)`);
+  console.log(`     Total de pasos del modo: ${1 + m1.total} (1 de piezas + ${m1.total} cables)`);
+  await dormir(300);
+  await captura('3c-cables-paso1-piezas.png');
+  await clicBoton('[data-cnav="1"]');
+  const m2 = await evaluar(`({ paso: app.modoCables.paso, cables: app.doc.wires.length, guia: app.cableGuiaId, primero: app.modoCables.cables[0].id, titulo: document.querySelector('#pest-guia h2').textContent })`);
+  ok(m2.paso === 2 && m2.cables === 1 && m2.guia === m2.primero && m2.titulo === 'Cable 1 de 901', `«Siguiente» pone el primer cable y lo marca (${m2.titulo})`);
+  for (let i = 0; i < 5; i++) await tecla('ArrowRight');
+  const m3 = await evaluar(`({ paso: app.modoCables.paso, cables: app.doc.wires.length })`);
+  ok(m3.paso === 7 && m3.cables === 6, 'La flecha → avanza un cable por pulsación (5 pulsaciones: paso 7, 6 cables puestos)');
+  await tecla('ArrowRight', true);
+  ok(await evaluar('app.modoCables.paso') === 17, 'Shift + → avanza de 10 en 10');
+  await tecla('ArrowLeft');
+  ok(await evaluar('app.modoCables.paso') === 16 && await evaluar('app.doc.wires.length') === 15, 'La flecha ← retrocede y quita el último cable');
+  await evaluar(`(() => { const i = document.querySelector('[data-cir]'); i.value = 120; i.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+  await dormir(300);
+  const m4 = await evaluar(`(() => { const mc = app.modoCables, w = mc.cables[mc.paso - 2]; const a = SIM8.posClave(app.doc, w.a), b = SIM8.posClave(app.doc, w.b); const vx1 = app.cam.x + app.ancho / app.cam.z, vy1 = app.cam.y + app.alto / app.cam.z; const ve = q => q.x >= app.cam.x && q.x <= vx1 && q.y >= app.cam.y && q.y <= vy1; return { paso: mc.paso, ambos: ve(a) && ve(b), zoom: +app.cam.z.toFixed(2), titulo: document.querySelector('#pest-guia h2').textContent, extremos: document.querySelectorAll('#pest-guia .extremo').length, color: document.querySelector('.cabecera-cable b').textContent }; })()`);
+  ok(m4.paso === 120 && m4.ambos && m4.extremos === 2, `«Ir al paso 120» muestra «${m4.titulo}» (cable ${m4.color}) y la cámara deja los dos extremos a la vista (zoom ${m4.zoom})`);
+  await captura('3d-cables-paso120.png');
+  // Solo lectura: no se puede editar ni borrar.
+  const antesEd = await evaluar('app.doc.wires.length + "/" + app.doc.parts.length');
+  await evaluar(`app.borrar({ tipo: 'cable', id: app.doc.wires[0].id }); app.girar(); app.agregarTablero(); app.iniciarColocacion('7400'); app.deshacer();`);
+  const despuesEd = await evaluar('app.doc.wires.length + "/" + app.doc.parts.length + "|" + !!app.colocar + "|" + document.getElementById("aviso").textContent');
+  ok(despuesEd.startsWith(antesEd + '|false|') && /solo lectura/.test(despuesEd), 'En este modo no se puede borrar, girar, colocar ni deshacer (avisa que es de solo lectura)');
+  // Los interruptores sí funcionan.
+  const sw = await evaluar(`(() => { const p = app.doc.parts.find(x => x.rol === '2:AUTO'); app.usarControl({ tipo: 'pieza', id: p.id, ctl: 'slide' }); return p.props.pos; })()`);
+  ok(sw === 1, 'Los interruptores se pueden mover en este modo');
+  await evaluar(`app.usarControl({ tipo: 'pieza', id: app.doc.parts.find(x => x.rol === '2:AUTO').id, ctl: 'slide' })`);
+  await tecla('End');
+  const m5 = await evaluar(`({ paso: app.modoCables.paso, cables: app.doc.wires.length, completo: app.verif.pasos.every(p => p.completo), fin: !!document.querySelector('.nota-paso.fin') })`);
+  ok(m5.paso === 902 && m5.cables === 901 && m5.completo && m5.fin, 'Al final (paso 902) están los 901 cables, la guía marca todo completo y muestra la prueba del último módulo');
+  await tecla('Home');
+  ok(await evaluar('app.modoCables.paso === 1 && app.doc.wires.length === 0'), 'Inicio vuelve al paso 1');
+  // Se conserva al recargar.
+  await evaluar(`app.irAPaso(50)`);
+  await dormir(800);
+  await cdp('Page.reload');
+  await dormir(2000);
+  const rec = await evaluar(`({ modo: !!app.modoCables, paso: app.modoCables && app.modoCables.paso })`);
+  ok(rec.modo && rec.paso === 50, `Al recargar la página sigue en el modo, en el paso ${rec.paso}`);
+  await evaluar('window.confirm = () => true');
+  // Salir devuelve el armado propio, sin cambios.
+  await clicBoton('[data-modo="pasos"]');
+  const salida = await evaluar(`JSON.stringify(app.doc)`);
+  ok(!(await evaluar('!!app.modoCables')) && salida === propio, 'Al volver a «Por pasos» está tu armado, idéntico al de antes');
 
   // Página de la computadora armada: abre con todo armado y guarda aparte del armado propio.
   await dormir(600);
